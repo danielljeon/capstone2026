@@ -1,7 +1,7 @@
 import time
 
 from constants import *
-from motor_rsbl120 import (
+from drivers.motor_rsbl120 import (
     send_move,
     read_position_step,
     open_actuator_serial_comm,
