@@ -1,9 +1,6 @@
-import os
 import time
 
-import numpy as np
-from dotenv import load_dotenv
-
+from constants import *
 from motor_rsbl120 import (
     send_move,
     read_position_step,
@@ -11,26 +8,6 @@ from motor_rsbl120 import (
     close_actuator_comm,
 )
 from robot_arm import *
-from constants import *
-
-# Environment variables load.
-load_dotenv()  # Load variables from .env.
-URDF_BASE_LINK = os.getenv("URDF_BASE_LINK", "base")
-URDF_PATH = os.getenv("URDF_PATH", "./urdf/robot.urdf")
-
-# Targets in meters.
-targets = np.array(
-    [
-        # [0.1609, 0.0, 0.01],  # Zero.
-        [-0.28, 0.35, 0.15],
-    ],
-    dtype=float,
-)
-
-# One plan per segment between targets (len(targets)-1).
-plans = [
-    # SegmentPlan(mode="free"),
-]
 
 
 def example_motor_init(j: JointCal):
@@ -139,37 +116,8 @@ if __name__ == "__main__":
     try:
         dt = 0.02
 
-        confirm_keys("Calculate IK")  # Developer type "yes" to continue.
-
-        # Calculate IK.
-        q_frames = ik_path(
-            urdf_base_link=URDF_BASE_LINK,
-            urdf_path=URDF_PATH,
-            initial_joint_angles_active=urdf_joint_angles_active(
-                URDF_BASE_LINK, URDF_PATH
-            ),
-            targets_xyz=targets,
-            segment_plans=plans,
-            dt=dt,
-            min_segment_time=2.5,
-            step_m=0.01,
-            smooth_alpha=0.3,
-        )
-        p = save_q_frames_now_csv(q_frames)
-        q_frames = load_q_frames_csv(p)
-
-        confirm_keys("Animation")  # Developer type "yes" to continue.
-
-        # Animate.
-        animate_q(
-            urdf_base_link=URDF_BASE_LINK,
-            urdf_path=URDF_PATH,
-            q_frames=q_frames,
-            targets_xyz=targets,
-            show_frames=True,
-            frame_scale=0.05,
-            frame_stride=1,
-        )
+        # Load IK calculations.
+        q_frames = load_q_frames_csv(IK_FILE_CSV)
 
         confirm_keys("Motion")  # Developer type "yes" to continue.
 

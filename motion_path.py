@@ -2,17 +2,17 @@ import numpy as np
 
 from robot_arm import SegmentPlan
 
-# Targets in meters.
-targets = np.array(
-    [
-        # [0.1609, 0.0, 0.01],  # Zero.
-        [-0.28, 0.35, 0.15],
-        [-0.25, 0.35, 0.15],
-        [-0.25, 0.35, 0.0],
-        [-0.25, 0.35, 0.15],
-    ],
-    dtype=float,
-)
+# # Targets in meters.
+# targets = np.array(
+#     [
+#         # [0.1609, 0.0, 0.01],  # Zero.
+#         [-0.28, 0.35, 0.15],
+#         [-0.25, 0.35, 0.15],
+#         [-0.25, 0.35, 0.0],
+#         [-0.25, 0.35, 0.15],
+#     ],
+#     dtype=float,
+# )
 
 # Example segment plans.
 horizontal_punch_segment = SegmentPlan(
@@ -40,10 +40,25 @@ vertical_up_segment = SegmentPlan(
     target_orientation=[0, 0, 1],
 )
 
+# # One plan per segment between targets (len(targets)-1).
+# plans = [
+#     # SegmentPlan(mode="free"),
+#     vertical_rslide_segment,
+#     vertical_down_segment,
+#     vertical_up_segment,
+# ]
+
+
+# Targets in meters.
+targets = np.array(
+    [
+        # [0.1609, 0.0, 0.01],  # Zero.
+        [-0.28, 0.35, 0.15],
+    ],
+    dtype=float,
+)
+
 # One plan per segment between targets (len(targets)-1).
 plans = [
     # SegmentPlan(mode="free"),
-    vertical_rslide_segment,
-    vertical_down_segment,
-    vertical_up_segment,
 ]
