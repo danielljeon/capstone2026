@@ -75,7 +75,7 @@ TORQUE_DAMPING = 2  # Passive damping / resistance mode
 # ---------------------------------------------------------------------------
 
 
-def open_actuator_serial_comm(port: str) -> serial.Serial:
+def rsbl120_open_comm(port: str) -> serial.Serial:
     """Open a serial connection to the servo bus at 1 Mbaud.
 
     Args:
@@ -84,23 +84,23 @@ def open_actuator_serial_comm(port: str) -> serial.Serial:
     Returns:
         An open :class:`serial.Serial` instance ready for communication.
     """
-    print(f"DEBUG: open_actuator_serial_comm {port}")
+    print(f"DEBUG: rsbl120_open_comm {port}")
     comm = serial.Serial(port, 1_000_000, timeout=0.1)
     time.sleep(0.2)  # allow hardware to settle
     return comm
 
 
-def close_actuator_comm(comm: serial.Serial) -> None:
+def rsbl120_close_comm(comm: serial.Serial) -> None:
     """Close the serial connection to the servo bus.
 
     Args:
         comm: The open :class:`serial.Serial` instance to close.
     """
-    print("DEBUG: close_actuator_comm")
+    print("DEBUG: rsbl120_close_comm")
     comm.close()
 
 
-def _read_exact(comm: serial.Serial, n: int) -> bytes:
+def __read_exact(comm: serial.Serial, n: int) -> bytes:
     """Read exactly *n* bytes from *comm*, respecting the port timeout.
 
     Args:
@@ -124,7 +124,7 @@ def _read_exact(comm: serial.Serial, n: int) -> bytes:
 # ---------------------------------------------------------------------------
 
 
-def _build_packet(servo_id: int, instr: int, params: bytes) -> bytes:
+def __build_packet(servo_id: int, instr: int, params: bytes) -> bytes:
     """Build a complete FT-SCS instruction packet.
 
     Packet layout::
@@ -148,7 +148,7 @@ def _build_packet(servo_id: int, instr: int, params: bytes) -> bytes:
     return b"\xff\xff" + body + bytes([checksum])
 
 
-def write_u8(
+def __write_u8(
     cal: JointCal, addr: int, value: int, packet_id: int | None = None
 ) -> None:
     """Write a single byte to a servo register.
@@ -161,13 +161,13 @@ def write_u8(
     """
     servo_id = cal.servo_id if packet_id is None else packet_id
     INSTR_WRITE = 0x03
-    packet = _build_packet(
+    packet = __build_packet(
         servo_id, INSTR_WRITE, bytes([addr & 0xFF, value & 0xFF])
     )
     cal.comm.write(packet)
 
 
-def write_u16(
+def __write_u16(
     cal: JointCal, addr: int, value: int, packet_id: int | None = None
 ) -> None:
     """Write a 16-bit value to a servo register (little-endian: low byte first).
@@ -182,7 +182,7 @@ def write_u16(
     INSTR_WRITE = 0x03
     v = int(value) & 0xFFFF
     params = bytes([addr & 0xFF, v & 0xFF, (v >> 8) & 0xFF])
-    packet = _build_packet(servo_id, INSTR_WRITE, params)
+    packet = __build_packet(servo_id, INSTR_WRITE, params)
     cal.comm.write(packet)
 
 
@@ -225,7 +225,7 @@ def _read_reply(cal: JointCal) -> bytes:
         raise RuntimeError("Timeout waiting for reply preamble (FF FF)")
 
     # ID, Length, Error
-    header = _read_exact(comm, 3)
+    header = __read_exact(comm, 3)
     if len(header) != 3:
         raise RuntimeError("Short reply: missing ID/Length/Error bytes")
 
@@ -240,7 +240,7 @@ def _read_reply(cal: JointCal) -> bytes:
 
     # Parameters + Checksum
     # length covers: Error(1) + params(N) + Checksum(1) -> tail = length - 1 bytes
-    tail = _read_exact(comm, length - 1)
+    tail = __read_exact(comm, length - 1)
     if len(tail) != length - 1:
         raise RuntimeError("Short reply: truncated parameter/checksum bytes")
 
@@ -263,7 +263,7 @@ def _read_reply(cal: JointCal) -> bytes:
 # ---------------------------------------------------------------------------
 
 
-def set_servo_id_nvm(cal: JointCal, new_id: int) -> None:
+def rsbl120_set_servo_id_nvm(cal: JointCal, new_id: int) -> None:
     """Permanently change the servo ID and persist it to EPROM.
 
     Sequence:
@@ -284,50 +284,50 @@ def set_servo_id_nvm(cal: JointCal, new_id: int) -> None:
     if not (0 <= new_id <= 253):
         raise ValueError(f"Servo ID must be 0-253, got {new_id}")
 
-    write_u8(cal, ADDR_LOCK, 0)  # step 1 - close lock (persist writes)
+    __write_u8(cal, ADDR_LOCK, 0)  # step 1 - close lock (persist writes)
     time.sleep(0.05)
 
-    write_u8(
+    __write_u8(
         cal, ADDR_ID, new_id, packet_id=BROADCAST_ID
     )  # step 2 - set new ID
     time.sleep(0.1)
 
     cal.servo_id = new_id  # step 3 - update software state
 
-    write_u8(cal, ADDR_LOCK, 1)  # step 4 - re-open lock (factory default)
+    __write_u8(cal, ADDR_LOCK, 1)  # step 4 - re-open lock (factory default)
     time.sleep(0.05)
 
     print(f"DEBUG: set_servo_id_nvm -> new ID={new_id}")
 
 
-def enable_actuator(cal: JointCal) -> None:
+def rsbl120_enable_actuator(cal: JointCal) -> None:
     """Enable torque output on the servo.
 
     Args:
         cal: :class:`JointCal` for the target servo.
     """
-    write_u8(cal, ADDR_TORQUE_SWITCH, TORQUE_ON)
+    __write_u8(cal, ADDR_TORQUE_SWITCH, TORQUE_ON)
 
 
-def disable_actuator(cal: JointCal) -> None:
+def rsbl120_disable_actuator(cal: JointCal) -> None:
     """Disable torque output, leaving the servo free to rotate (limp).
 
     Args:
         cal: :class:`JointCal` for the target servo.
     """
-    write_u8(cal, ADDR_TORQUE_SWITCH, TORQUE_OFF)
+    __write_u8(cal, ADDR_TORQUE_SWITCH, TORQUE_OFF)
 
 
-def set_damping(cal: JointCal) -> None:
+def rsbl120_set_damping(cal: JointCal) -> None:
     """Switch the servo to damping mode (passive resistance, no active driving).
 
     Args:
         cal: :class:`JointCal` for the target servo.
     """
-    write_u8(cal, ADDR_TORQUE_SWITCH, TORQUE_DAMPING)
+    __write_u8(cal, ADDR_TORQUE_SWITCH, TORQUE_DAMPING)
 
 
-def scan_for_servo(
+def rsbl120_scan_for_servo(
     comm: serial.Serial, id_min: int = 0, id_max: int = 253
 ) -> list[int]:
     """Scan the bus for responding servos by sending PING to each ID in range.
@@ -347,7 +347,7 @@ def scan_for_servo(
 
     for servo_id in range(id_min, id_max + 1):
         comm.reset_input_buffer()
-        packet = _build_packet(servo_id, INSTR_PING, b"")
+        packet = __build_packet(servo_id, INSTR_PING, b"")
         comm.write(packet)
 
         # Collect bytes for up to 20 ms; most servos reply within a few ms.
@@ -393,7 +393,7 @@ def scan_for_servo(
     return found
 
 
-def reset_servo_id(cal: JointCal) -> None:
+def rsbl120_reset_servo_id(cal: JointCal) -> None:
     """Reset the servo to factory defaults using the RESET instruction (0x06).
 
     This restores the entire control table, including setting the ID back to 1.
@@ -407,7 +407,7 @@ def reset_servo_id(cal: JointCal) -> None:
         cal: :class:`JointCal` with the current (known) servo ID.
     """
     INSTR_RESET = 0x06
-    packet = _build_packet(cal.servo_id, INSTR_RESET, b"")
+    packet = __build_packet(cal.servo_id, INSTR_RESET, b"")
     cal.comm.write(packet)
     time.sleep(0.5)  # allow the servo to reboot and apply factory defaults
 
@@ -417,7 +417,7 @@ def reset_servo_id(cal: JointCal) -> None:
     )
 
 
-def read_position_step(cal: JointCal) -> int:
+def rsbl120_read_position_step(cal: JointCal) -> int:
     """Read the current absolute position in raw steps.
 
     The nominal range is 0-4095. BIT15 encodes the rotation direction in
@@ -436,7 +436,7 @@ def read_position_step(cal: JointCal) -> int:
     READ_LEN = 2
 
     params = bytes([ADDR_PRESENT_POS, READ_LEN])
-    packet = _build_packet(cal.servo_id, INSTR_READ, params)
+    packet = __build_packet(cal.servo_id, INSTR_READ, params)
     cal.comm.write(packet)
 
     reply = _read_reply(cal)
@@ -447,7 +447,7 @@ def read_position_step(cal: JointCal) -> int:
     return reply[0] | (reply[1] << 8)
 
 
-def read_current_ma(cal: JointCal) -> float:
+def rsbl120_read_current_ma(cal: JointCal) -> float:
     """Read the current phase current in milliamps.
 
     Reads register ``ADDR_PRESENT_AMP`` (0x45); resolution is 6.5 mA per LSB.
@@ -465,7 +465,7 @@ def read_current_ma(cal: JointCal) -> float:
     READ_LEN = 2
 
     params = bytes([ADDR_PRESENT_AMP, READ_LEN])
-    packet = _build_packet(cal.servo_id, INSTR_READ, params)
+    packet = __build_packet(cal.servo_id, INSTR_READ, params)
     cal.comm.write(packet)
 
     reply = _read_reply(cal)
@@ -476,7 +476,7 @@ def read_current_ma(cal: JointCal) -> float:
     return raw * 6.5  # mA per LSB
 
 
-def set_torque_limit(cal: JointCal, limit_pct: float) -> None:
+def rsbl120_set_torque_limit(cal: JointCal, limit_pct: float) -> None:
     """Set the torque (locked-rotor) limit.
 
     Args:
@@ -485,10 +485,10 @@ def set_torque_limit(cal: JointCal, limit_pct: float) -> None:
                    Internally stored as 0-1000 (unit 0.1 %).
     """
     raw = int(np.clip(limit_pct * 10.0, 0, 1000))
-    write_u16(cal, ADDR_TORQUE_LIMIT, raw)
+    __write_u16(cal, ADDR_TORQUE_LIMIT, raw)
 
 
-def zero_to_current_position(cal: JointCal) -> None:
+def rsbl120_zero_to_current_position(cal: JointCal) -> None:
     """Set the software zero to the servo's current physical position.
 
     Reads the present step position and stores the corresponding angular offset
@@ -498,7 +498,9 @@ def zero_to_current_position(cal: JointCal) -> None:
     Args:
         cal: :class:`JointCal` for the target servo.
     """
-    s_cur = read_position_step(cal) & 0x7FFF  # mask direction bit (single-turn)
+    s_cur = (
+        rsbl120_read_position_step(cal) & 0x7FFF
+    )  # mask direction bit (single-turn)
     cal.zero_position_rad = (
         -cal.sign * (float(s_cur) - STEP_CENTER) / DEFAULT_STEP_PER_RAD
     )
@@ -508,7 +510,9 @@ def zero_to_current_position(cal: JointCal) -> None:
     )
 
 
-def send_move(cal: JointCal, pos_rad: float, speed_rpm: float = 0.0) -> None:
+def rsbl120_send_move(
+    cal: JointCal, pos_rad: float, speed_rpm: float = 0.0
+) -> None:
     """Command the servo to move to *pos_rad* at up to *speed_rpm*.
 
     Writes six consecutive bytes starting at ``ADDR_TARGET_POS`` (0x2A)::
@@ -540,5 +544,5 @@ def send_move(cal: JointCal, pos_rad: float, speed_rpm: float = 0.0) -> None:
             (speed_raw >> 8) & 0xFF,  # 0x2E-0x2F: running speed
         ]
     )
-    packet = _build_packet(cal.servo_id, INSTR_WRITE, params)
+    packet = __build_packet(cal.servo_id, INSTR_WRITE, params)
     cal.comm.write(packet)
