@@ -77,9 +77,9 @@ def st3215_id_motor(
 
 if __name__ == "__main__":
     # from constants import RSBL120_PORT
-    # id_motor(RSBL120_PORT, 1, 1, False, False)
+    # rsbl120_id_motor(RSBL120_PORT, 1, 1, False, False)
 
     # from constants import ST3215_PORT
-    # id_motor(ST3215_PORT, 1, 1, False, False)
+    # st3215_id_motor(ST3215_PORT, 1, 1, False, False)
 
     pass
