@@ -40,6 +40,10 @@ def rsbl120_id_motor(
         rsbl120_set_servo_id_nvm(old_cal, new_id)
         time.sleep(0.1)
 
+    # Close and reopen communication.
+    rsbl120_close_comm(comm)
+    comm = rsbl120_open_comm(port)
+
     # New joint check.
     new_cal = JointCal(name="new_cal", comm=comm, servo_id=new_id)
     if print_pos:
@@ -74,6 +78,10 @@ def st3215_id_motor(
         st3215_set_servo_id_nvm(old_cal, new_id)
         time.sleep(0.1)
 
+    # Close and reopen communication.
+    st3215_close_comm(comm)
+    comm = st3215_open_comm(port)
+
     # New joint check.
     new_cal = JointCal(name="new_cal", comm=comm, servo_id=new_id)
     if print_pos:
@@ -84,10 +92,14 @@ def st3215_id_motor(
 
 
 if __name__ == "__main__":
+    """RSBL120"""
     # from constants import RSBL120_PORT
+    #
     # rsbl120_id_motor(RSBL120_PORT, 1, 1, False, True)
 
+    """ST3215"""
     # from constants import ST3215_PORT
+    #
     # st3215_id_motor(ST3215_PORT, 1, 1, False, True)
 
     pass
