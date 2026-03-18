@@ -21,6 +21,7 @@ import time
 
 import numpy as np
 import serial
+
 from robot_arm import JointCal, rad_to_step
 
 # ---------------------------------------------------------------------------
