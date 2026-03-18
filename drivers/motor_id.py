@@ -1,9 +1,17 @@
 import time
 
-import serial
-
-from motor_rsbl120 import rsbl120_read_position_step, rsbl120_set_servo_id_nvm
-from motor_st3215 import st3215_read_position_step, st3215_set_servo_id_nvm
+from motor_rsbl120 import (
+    rsbl120_open_comm,
+    rsbl120_read_position_step,
+    rsbl120_set_servo_id_nvm,
+    rsbl120_close_comm,
+)
+from motor_st3215 import (
+    st3215_open_comm,
+    st3215_read_position_step,
+    st3215_set_servo_id_nvm,
+    st3215_close_comm,
+)
 from robot_arm import JointCal
 
 
@@ -20,7 +28,7 @@ def rsbl120_id_motor(
         print("Position:", pos)
 
     # New communication interface.
-    comm = serial.Serial(port, 1_000_000, timeout=0.1)
+    comm = rsbl120_open_comm(port)
 
     # Old joint check.
     old_cal = JointCal(name="old_cal", comm=comm, servo_id=old_id)
@@ -38,7 +46,7 @@ def rsbl120_id_motor(
         __rsbl120_print_pos(new_cal)
 
     # Close communication.
-    comm.close()
+    rsbl120_close_comm(comm)
 
 
 def st3215_id_motor(
@@ -54,7 +62,7 @@ def st3215_id_motor(
         print("Position:", pos)
 
     # New communication interface.
-    comm = serial.Serial(port, 1_000_000, timeout=0.1)
+    comm = st3215_open_comm(port)
 
     # Old joint check.
     old_cal = JointCal(name="old_cal", comm=comm, servo_id=old_id)
@@ -72,14 +80,14 @@ def st3215_id_motor(
         __st3215_print_pos(new_cal)
 
     # Close communication.
-    comm.close()
+    st3215_close_comm(comm)
 
 
 if __name__ == "__main__":
     # from constants import RSBL120_PORT
-    # rsbl120_id_motor(RSBL120_PORT, 1, 1, False, False)
+    # rsbl120_id_motor(RSBL120_PORT, 1, 1, False, True)
 
     # from constants import ST3215_PORT
-    # st3215_id_motor(ST3215_PORT, 1, 1, False, False)
+    # st3215_id_motor(ST3215_PORT, 1, 1, False, True)
 
     pass
