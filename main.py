@@ -3,16 +3,15 @@ import time
 from constants import *
 from drivers.motor_rsbl120 import (
     rsbl120_send_move,
-    rsbl120_read_position_step,
     rsbl120_open_comm,
     rsbl120_close_comm,
 )
+from drivers.motor_st3215 import (
+    st3215_send_move,
+    st3215_open_comm,
+    st3215_close_comm,
+)
 from robot_arm import *
-
-
-def rsbl120_motor_init(j: JointCal):
-    print(f"Motor {j.name} ({j.servo_id}) POS {rsbl120_read_position_step(j)}")
-
 
 joint_cals = [
     JointCal(
@@ -24,8 +23,8 @@ joint_cals = [
         sign=+1,
         rad_min=-0.0,
         rad_max=+0.0,
-        init_func=None,
-        move_func=rsbl120_send_move,
+        init_func=motor_init,
+        move_func=st3215_send_move,
         deinit_func=motor_deinit,
     ),
     JointCal(
@@ -37,7 +36,7 @@ joint_cals = [
         sign=-1,
         rad_min=-2.44346,
         rad_max=0.0,
-        init_func=rsbl120_motor_init,
+        init_func=motor_init,
         move_func=rsbl120_send_move,
         deinit_func=motor_deinit,
     ),
@@ -50,7 +49,7 @@ joint_cals = [
         sign=+1,
         rad_min=-0.174533,
         rad_max=3.31613,
-        init_func=rsbl120_motor_init,
+        init_func=motor_init,
         move_func=rsbl120_send_move,
         deinit_func=motor_deinit,
     ),
@@ -63,7 +62,7 @@ joint_cals = [
         sign=-1,
         rad_min=-3.31613,
         rad_max=0.174533,
-        init_func=rsbl120_motor_init,
+        init_func=motor_init,
         move_func=rsbl120_send_move,
         deinit_func=motor_deinit,
     ),
@@ -76,7 +75,7 @@ joint_cals = [
         sign=-1,
         rad_min=0.0,
         rad_max=+2.44346,
-        init_func=rsbl120_motor_init,
+        init_func=motor_init,
         move_func=rsbl120_send_move,
         deinit_func=motor_deinit,
     ),
@@ -89,8 +88,8 @@ joint_cals = [
         sign=+1,
         rad_min=-0.0,
         rad_max=+0.0,
-        init_func=None,
-        move_func=rsbl120_send_move,
+        init_func=motor_init,
+        move_func=st3215_send_move,
         deinit_func=motor_deinit,
     ),
 ]
@@ -123,14 +122,14 @@ if __name__ == "__main__":
 
         # Open comms.
         rsbl120_comm = rsbl120_open_comm(RSBL120_PORT)
-        # TODO st3215_comm = st3215_open_comm(ST3215_PORT)
+        st3215_comm = st3215_open_comm(ST3215_PORT)
 
         # Assign comms objects for each joint.
         for joint in joint_cals:
             if "rsbl120" in joint.name:
                 joint.comm = rsbl120_comm
             elif "st3215" in joint.name:
-                pass  # TODO joint.comm = st3215_comm
+                joint.comm = st3215_comm
 
         # Initialize each joint.
         for joint in joint_cals:
@@ -158,7 +157,7 @@ if __name__ == "__main__":
 
             # Close comms.
             rsbl120_close_comm(rsbl120_comm)
-            # TODO st3215_close_comm(st3215_comm)
+            st3215_close_comm(st3215_comm)
 
     except KeyboardInterrupt:
         print("\nClosing program...")
