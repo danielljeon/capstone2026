@@ -1,9 +1,15 @@
 """CAN-based PWM servo driver using the can_pwm_node DBC definition.
 
 This module provides a high-level API for commanding servos over CAN via the
-PWM_NODE firmware.  Commands are encoded using the project DBC file and sent
-with python-can, mirroring the structure of the serial servo drivers
-(motor_rsbl120.py / motor_sts3215.py).
+PWM_NODE firmware. Commands are encoded using the project DBC file and sent with
+python-can, using the shared JointCal from robot_arm to stay consistent with the
+other servo drivers (motor_rsbl120.py / motor_sts3215.py).
+
+JointCal field usage:
+    comm          -> open can.BusABC instance
+    servo_id      -> PWM_NODE channel number (1-4)
+    sign          -> direction polarity (+1 or -1)
+    hardware_zero -> angular offset so physical home = 0 rad
 
 DBC summary (can_pwm_node.dbc):
     command_servo_1  (CAN ID  64) - signal command_servo_1_pwm  [500, 2500] us
@@ -19,19 +25,20 @@ PWM -> radians convention (tunable via module-level constants):
     2000 us  ->  +PI/2 rad
     -> RAD_PER_US = PI / 1000
 
-    These values are standard RC-servo approximations.  Adjust PWM_CENTER_US
+    These values are standard RC-servo approximations. Adjust PWM_CENTER_US
     and RAD_PER_US to match your actual hardware limits.
 """
 
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass
 from pathlib import Path
 
 import can
 import cantools
 import numpy as np
+
+from robot_arm import JointCal
 
 # ---------------------------------------------------------------------------
 # DBC path - update if the file is moved relative to this module
@@ -41,7 +48,7 @@ DBC_PATH: Path = Path(__file__).parent / "pwm_node_driver/can_pwm_node.dbc"
 """Absolute path to the CAN database file used for message encoding."""
 
 # ---------------------------------------------------------------------------
-# PWM <-> radians conversion constants  (tune these for your hardware)
+# PWM <-> radians conversion constants (tune these for your hardware)
 # ---------------------------------------------------------------------------
 
 PWM_MIN_US: int = 500  # Minimum pulse width from DBC range
@@ -55,7 +62,7 @@ Adjust together with PWM_CENTER_US to match physical servo limits.
 """
 
 # ---------------------------------------------------------------------------
-# CAN channel -> DBC message name mapping  (channels 1-4)
+# CAN channel -> DBC message name mapping (channels 1-4 == servo_id 1-4)
 # ---------------------------------------------------------------------------
 
 _CHANNEL_TO_MSG: dict[int, str] = {
@@ -73,39 +80,7 @@ _db: cantools.database.Database = cantools.database.load_file(str(DBC_PATH))
 
 
 # ---------------------------------------------------------------------------
-# Configuration dataclass
-# ---------------------------------------------------------------------------
-
-
-@dataclass
-class CanJointCal:
-    """Runtime configuration for a single CAN-connected servo channel.
-
-    Attributes:
-        bus:              Open :class:`can.BusABC` instance for this servo.
-        channel:          PWM_NODE servo channel number (1-4).
-        sign:             Direction polarity (+1 or -1).  Multiply the
-                          commanded angle by this before converting to PWM.
-        zero_position_rad: Angular offset (rad) applied so that the physical
-                          home position corresponds to 0 rad in commands.
-    """
-
-    bus: can.BusABC
-    channel: int
-    sign: int = 1
-    zero_position_rad: float = 0.0
-
-    def __post_init__(self) -> None:
-        if self.channel not in _CHANNEL_TO_MSG:
-            raise ValueError(
-                f"channel must be 1-4, got {self.channel}"
-            )
-        if self.sign not in (1, -1):
-            raise ValueError(f"sign must be +1 or -1, got {self.sign}")
-
-
-# ---------------------------------------------------------------------------
-# Serial-port-style open/close helpers (CAN bus)
+# CAN bus open/close helpers
 # ---------------------------------------------------------------------------
 
 
@@ -116,18 +91,22 @@ def pwm_node_servo_open_comm(
 ) -> can.BusABC:
     """Open a CAN bus connection.
 
+    The returned bus should be passed as `comm` when constructing a
+    :class:`JointCal` for this driver.
+
     Args:
         interface: python-can interface name (e.g. `"socketcan"`,
                    `"pcan"`, `"kvaser"`).
         channel:   OS channel name (e.g. `"can0"`).
-        bitrate:   Bus bitrate in bits/s (default 1 Mbit/s).
+        bitrate:   Bus bitrate in bits/s (default 500 kbit/s).
 
     Returns:
         An open :class:`can.BusABC` instance ready for use.
     """
     print(
         f"DEBUG: pwm_node_servo_open_comm interface={interface} "
-        f"channel={channel}")
+        f"channel={channel}"
+    )
     bus = can.interface.Bus(interface=interface, channel=channel,
                             bitrate=bitrate)
     time.sleep(0.05)  # allow hardware to settle
@@ -149,40 +128,39 @@ def pwm_node_servo_close_comm(bus: can.BusABC) -> None:
 # ---------------------------------------------------------------------------
 
 
-def __rad_to_us(pos_rad: float, cal: CanJointCal) -> int:
+def _rad_to_us(pos_rad: float, cal: JointCal) -> int:
     """Convert a position in radians to a PWM pulse width in microseconds.
 
-    Applies `cal.sign` and `cal.zero_position_rad` before converting, then
-    clamps to the hardware-safe range `[PWM_MIN_US, PWM_MAX_US]`.
+    Applies `cal.sign` and `cal.hardware_zero` before converting, then
+    clamps to the hardware-safe range [`PWM_MIN_US`, `PWM_MAX_US`].
 
     Args:
-        pos_rad: Desired position in radians (in the software frame).
-        cal:     :class:`CanJointCal` supplying sign and zero offset.
+        pos_rad: Desired position in radians (software frame).
+        cal:     :class:`JointCal` supplying sign and hardware zero offset.
 
     Returns:
         Pulse width in microseconds, clamped to [`PWM_MIN_US`, `PWM_MAX_US`].
     """
-    # Apply zero-offset and direction polarity
-    physical_rad = cal.sign * (pos_rad + cal.zero_position_rad)
+    physical_rad = cal.sign * (pos_rad + cal.hardware_zero)
     us = PWM_CENTER_US + physical_rad / RAD_PER_US
     return int(np.clip(round(us), PWM_MIN_US, PWM_MAX_US))
 
 
-def __us_to_rad(pulse_us: int, cal: CanJointCal) -> float:
-    """Convert a raw PWM pulse width to a position in radians.
+def _us_to_rad(pulse_us: int, cal: JointCal) -> float:
+    """Convert a raw PWM pulse width in microseconds to a position in radians.
 
-    Inverts `cal.sign` and `cal.zero_position_rad` so the result is in the
-    software frame (consistent with :func:`__rad_to_us`).
+    Inverts `cal.sign` and `cal.hardware_zero` so the result is in the
+    software frame (consistent with :func:`_rad_to_us`).
 
     Args:
         pulse_us: Pulse width in microseconds.
-        cal:      :class:`CanJointCal` supplying sign and zero offset.
+        cal:      :class:`JointCal` supplying sign and hardware zero offset.
 
     Returns:
         Position in radians in the software frame.
     """
     physical_rad = (pulse_us - PWM_CENTER_US) * RAD_PER_US
-    return cal.sign * physical_rad - cal.zero_position_rad
+    return cal.sign * physical_rad - cal.hardware_zero
 
 
 # ---------------------------------------------------------------------------
@@ -190,18 +168,31 @@ def __us_to_rad(pulse_us: int, cal: CanJointCal) -> float:
 # ---------------------------------------------------------------------------
 
 
-def pwm_node_servo_send_move(cal: CanJointCal, pos_rad: float) -> None:
+def pwm_node_servo_send_move(
+        cal: JointCal, pos_rad: float, move_time_ms: int = 0
+) -> None:
     """Command the servo to move to *pos_rad*.
 
     Encodes the target angle as a PWM pulse width using the DBC definition and
-    transmits the corresponding CAN frame.
+    transmits the corresponding CAN frame on `cal.comm`.
+
+    `cal.servo_id` selects the PWM channel (1-4).
+    `move_time_ms` is accepted for signature compatibility with
+    :func:`execute_q_frames` but is not used — the PWM_NODE has no
+    timed-move concept.
 
     Args:
-        cal:     :class:`CanJointCal` for the target channel.
-        pos_rad: Desired position in radians (software frame).
+        cal:          :class:`JointCal` whose `comm` is the CAN bus and
+                      `servo_id` is the channel number (1-4).
+        pos_rad:      Desired position in radians (software frame).
+        move_time_ms: Ignored; present for compatibility with
+                      :func:`execute_q_frames`.
+
+    Raises:
+        KeyError: If `cal.servo_id` is not in 1-4.
     """
-    pulse_us = __rad_to_us(pos_rad, cal)
-    msg_name = _CHANNEL_TO_MSG[cal.channel]
+    pulse_us = _rad_to_us(pos_rad, cal)
+    msg_name = _CHANNEL_TO_MSG[cal.servo_id]
     signal_name = f"{msg_name}_pwm"
 
     dbc_msg = _db.get_message_by_name(msg_name)
@@ -213,40 +204,43 @@ def pwm_node_servo_send_move(cal: CanJointCal, pos_rad: float) -> None:
     )
 
     print(
-        f"DEBUG: send_move channel={cal.channel} "
+        f"DEBUG: pwm_node_servo_send_move channel={cal.servo_id} "
         f"pos_rad={pos_rad:.4f} -> pulse_us={pulse_us} us"
     )
 
-    cal.bus.send(frame)
+    cal.comm.send(frame)
 
 
-def pwm_node_servo_zero_to_current_position(cal: CanJointCal,
-                                            current_pulse_us: int) -> None:
+def pwm_node_servo_zero_to_current_position(
+        cal: JointCal, current_pulse_us: int
+) -> None:
     """Set the software zero to a known physical pulse width.
 
     The PWM_NODE has no position-feedback messages in the DBC, so the current
     position must be supplied by the caller (e.g. read from hardware at startup
-    or assumed to be at the mechanical centre).
+    or assumed to be at mechanical centre). The result is stored in
+    `cal.hardware_zero`.
 
     Args:
-        cal:              :class:`CanJointCal` for the target channel.
+        cal:              :class:`JointCal` for the target channel.
         current_pulse_us: Current pulse width reported by the hardware (us).
     """
     physical_rad = (current_pulse_us - PWM_CENTER_US) * RAD_PER_US
-    cal.zero_position_rad = -cal.sign * physical_rad
+    cal.hardware_zero = -cal.sign * physical_rad
     print(
-        f"DEBUG: zero_to_current_position channel={cal.channel} "
+        f"DEBUG: pwm_node_servo_zero_to_current_position channel={cal.servo_id} "
         f"current_pulse_us={current_pulse_us} "
-        f"-> zero_position_rad={cal.zero_position_rad:.6f} rad"
+        f"-> hardware_zero={cal.hardware_zero:.6f} rad"
     )
 
 
-def pwm_node_servo_zero_to_centre(cal: CanJointCal) -> None:
+def pwm_node_servo_zero_to_centre(cal: JointCal) -> None:
     """Convenience wrapper: treat the servo centre (1500 us) as 0 rad.
 
-    Equivalent to calling `zero_to_current_position(cal, PWM_CENTER_US)`.
+    Equivalent to calling
+    `pwm_node_servo_zero_to_current_position(cal, PWM_CENTER_US)`.
 
     Args:
-        cal: :class:`CanJointCal` for the target channel.
+        cal: :class:`JointCal` for the target channel.
     """
     pwm_node_servo_zero_to_current_position(cal, PWM_CENTER_US)
