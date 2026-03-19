@@ -38,7 +38,7 @@ def open_claw():
     pwm_node_hbridge_comm = pwm_node_servo_open_comm(
         PWM_NODE_SERVO_INTERFACE, PWM_NODE_SERVO_CHANNEL, PWM_NODE_SERVO_BITRATE
     )
-    hbridge_drive(pwm_node_hbridge_comm, 0.5, 3, reverse=False)
+    hbridge_drive(pwm_node_hbridge_comm, 1, 11, reverse=False)
     pwm_node_servo_close_comm(pwm_node_hbridge_comm)
 
 
@@ -46,5 +46,5 @@ def close_claw():
     pwm_node_hbridge_comm = pwm_node_servo_open_comm(
         PWM_NODE_SERVO_INTERFACE, PWM_NODE_SERVO_CHANNEL, PWM_NODE_SERVO_BITRATE
     )
-    hbridge_drive(pwm_node_hbridge_comm, 0.5, 3, reverse=True)
+    hbridge_drive(pwm_node_hbridge_comm, 1, 10.5, reverse=True)
     pwm_node_servo_close_comm(pwm_node_hbridge_comm)
