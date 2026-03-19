@@ -51,15 +51,11 @@ DBC_PATH: Path = Path(__file__).parent / "pwm_node_driver/can_pwm_node.dbc"
 # PWM <-> radians conversion constants (tune these for your hardware)
 # ---------------------------------------------------------------------------
 
+# Using a variant of the MG90s hobby servos:
 PWM_MIN_US: int = 500  # Minimum pulse width from DBC range
 PWM_MAX_US: int = 2500  # Maximum pulse width from DBC range
 PWM_CENTER_US: int = 1500  # Pulse width that maps to 0.0 rad (servo centre)
-RAD_PER_US: float = np.pi / 1000.0
-"""Radians per microsecond deviation from centre.
-
-Standard approximation: 500 us deviation = PI/2 rad (90 deg).
-Adjust together with PWM_CENTER_US to match physical servo limits.
-"""
+RAD_PER_US: float = (np.pi) / 1000.0  # Radians per microsecond from centre
 
 # ---------------------------------------------------------------------------
 # CAN channel -> DBC message name mapping (channels 1-4 == servo_id 1-4)
@@ -132,8 +128,8 @@ def pwm_node_servo_close_comm(bus: can.BusABC) -> None:
 def _rad_to_us(pos_rad: float, cal: JointCal) -> int:
     """Convert a position in radians to a PWM pulse width in microseconds.
 
-    Applies `cal.sign` and `cal.hardware_zero` before converting, then
-    clamps to the hardware-safe range [`PWM_MIN_US`, `PWM_MAX_US`].
+    Applies `cal.sign` and `cal.hardware_zero`, then clamps to the hardware-safe
+    range [`PWM_MIN_US`, `PWM_MAX_US`].
 
     Args:
         pos_rad: Desired position in radians (software frame).
@@ -142,26 +138,9 @@ def _rad_to_us(pos_rad: float, cal: JointCal) -> int:
     Returns:
         Pulse width in microseconds, clamped to [`PWM_MIN_US`, `PWM_MAX_US`].
     """
-    physical_rad = cal.sign * (pos_rad + cal.hardware_zero)
-    us = PWM_CENTER_US + physical_rad / RAD_PER_US
+    physical_rad = cal.sign * pos_rad
+    us = physical_rad / RAD_PER_US + PWM_CENTER_US + cal.hardware_zero
     return int(np.clip(round(us), PWM_MIN_US, PWM_MAX_US))
-
-
-def _us_to_rad(pulse_us: int, cal: JointCal) -> float:
-    """Convert a raw PWM pulse width in microseconds to a position in radians.
-
-    Inverts `cal.sign` and `cal.hardware_zero` so the result is in the
-    software frame (consistent with :func:`_rad_to_us`).
-
-    Args:
-        pulse_us: Pulse width in microseconds.
-        cal:      :class:`JointCal` supplying sign and hardware zero offset.
-
-    Returns:
-        Position in radians in the software frame.
-    """
-    physical_rad = (pulse_us - PWM_CENTER_US) * RAD_PER_US
-    return cal.sign * physical_rad - cal.hardware_zero
 
 
 # ---------------------------------------------------------------------------
@@ -210,38 +189,3 @@ def pwm_node_servo_send_move(
     )
 
     cal.comm.send(frame)
-
-
-def pwm_node_servo_zero_to_current_position(
-    cal: JointCal, current_pulse_us: int
-) -> None:
-    """Set the software zero to a known physical pulse width.
-
-    The PWM_NODE has no position-feedback messages in the DBC, so the current
-    position must be supplied by the caller (e.g. read from hardware at startup
-    or assumed to be at mechanical centre). The result is stored in
-    `cal.hardware_zero`.
-
-    Args:
-        cal:              :class:`JointCal` for the target channel.
-        current_pulse_us: Current pulse width reported by the hardware (us).
-    """
-    physical_rad = (current_pulse_us - PWM_CENTER_US) * RAD_PER_US
-    cal.hardware_zero = -cal.sign * physical_rad
-    print(
-        f"DEBUG: pwm_node_servo_zero_to_current_position channel={cal.servo_id} "
-        f"current_pulse_us={current_pulse_us} "
-        f"-> hardware_zero={cal.hardware_zero:.6f} rad"
-    )
-
-
-def pwm_node_servo_zero_to_centre(cal: JointCal) -> None:
-    """Convenience wrapper: treat the servo centre (1500 us) as 0 rad.
-
-    Equivalent to calling
-    `pwm_node_servo_zero_to_current_position(cal, PWM_CENTER_US)`.
-
-    Args:
-        cal: :class:`JointCal` for the target channel.
-    """
-    pwm_node_servo_zero_to_current_position(cal, PWM_CENTER_US)
