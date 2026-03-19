@@ -85,9 +85,9 @@ _db: cantools.database.Database = cantools.database.load_file(str(DBC_PATH))
 
 
 def pwm_node_servo_open_comm(
-        interface: str = "socketcan",
-        channel: str = "can0",
-        bitrate: int = 500_000,
+    interface: str = "socketcan",
+    channel: str = "can0",
+    bitrate: int = 500_000,
 ) -> can.BusABC:
     """Open a CAN bus connection.
 
@@ -107,8 +107,9 @@ def pwm_node_servo_open_comm(
         f"DEBUG: pwm_node_servo_open_comm interface={interface} "
         f"channel={channel}"
     )
-    bus = can.interface.Bus(interface=interface, channel=channel,
-                            bitrate=bitrate)
+    bus = can.interface.Bus(
+        interface=interface, channel=channel, bitrate=bitrate
+    )
     time.sleep(0.05)  # allow hardware to settle
     return bus
 
@@ -169,7 +170,7 @@ def _us_to_rad(pulse_us: int, cal: JointCal) -> float:
 
 
 def pwm_node_servo_send_move(
-        cal: JointCal, pos_rad: float, move_time_ms: int = 0
+    cal: JointCal, pos_rad: float, move_time_ms: int = 0
 ) -> None:
     """Command the servo to move to *pos_rad*.
 
@@ -212,7 +213,7 @@ def pwm_node_servo_send_move(
 
 
 def pwm_node_servo_zero_to_current_position(
-        cal: JointCal, current_pulse_us: int
+    cal: JointCal, current_pulse_us: int
 ) -> None:
     """Set the software zero to a known physical pulse width.
 
