@@ -1,0 +1,9 @@
+# $ pip install -r requirements.txt
+
+cantools~=41.2.1
+ikpy~=3.4.2
+matplotlib~=3.10.8
+numpy~=2.2.6
+python-can~=4.6.1
+python-dotenv~=1.2.2
+pyserial~=3.5
