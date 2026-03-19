@@ -178,7 +178,7 @@ def pwm_node_servo_send_move(
 
     `cal.servo_id` selects the PWM channel (1-4).
     `move_time_ms` is accepted for signature compatibility with
-    :func:`execute_q_frames` but is not used — the PWM_NODE has no
+    :func:`execute_q_frames` but is not used - the PWM_NODE has no
     timed-move concept.
 
     Args:
