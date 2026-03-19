@@ -399,7 +399,7 @@ def rsbl120_reset_servo_id(cal: JointCal) -> None:
 
     This restores the entire control table, including setting the ID back to 1.
     All other EPROM settings (PID gains, angle limits, baud rate, etc.) are also
-    reset — use with caution.
+    reset - use with caution.
 
     ``cal.servo_id`` is updated to 1 after the call so subsequent commands work
     without reconstructing the :class:`JointCal`.
