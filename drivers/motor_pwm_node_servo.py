@@ -86,7 +86,7 @@ _db: cantools.database.Database = cantools.database.load_file(str(DBC_PATH))
 
 def pwm_node_servo_open_comm(
     interface: str = "socketcan",
-    channel: str = "can0",
+    channel: str | int = "can0",
     bitrate: int = 500_000,
 ) -> can.BusABC:
     """Open a CAN bus connection.
