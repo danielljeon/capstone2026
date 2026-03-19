@@ -54,8 +54,8 @@ DBC_PATH: Path = Path(__file__).parent / "pwm_node_driver/can_pwm_node.dbc"
 # Using a variant of the MG90s hobby servos:
 PWM_MIN_US: int = 500  # Minimum pulse width from DBC range
 PWM_MAX_US: int = 2500  # Maximum pulse width from DBC range
-PWM_CENTER_US: int = 1500  # Pulse width that maps to 0.0 rad (servo centre)
-RAD_PER_US: float = (np.pi) / 1000.0  # Radians per microsecond from centre
+PWM_CENTER_US: int = 500  # Pulse width that maps to 0.0 rad (servo centre)
+RAD_PER_US: float = (np.pi) / 2600  # Radians per microsecond from centre
 
 # ---------------------------------------------------------------------------
 # CAN channel -> DBC message name mapping (channels 1-4 == servo_id 1-4)
