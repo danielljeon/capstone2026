@@ -1,10 +1,11 @@
-from robot_arm import *
 from constants import *
+from drivers.motor_pwm_node_hbridge import hbridge_drive
 from drivers.motor_pwm_node_servo import (
     pwm_node_servo_send_move,
     pwm_node_servo_open_comm,
     pwm_node_servo_close_comm,
 )
+from robot_arm import *
 
 BASE_TC = JointCal(
     name="base_tool_changer",
@@ -31,3 +32,19 @@ def lock_tool_changer(cal: JointCal):
     cal.comm = pwm_node_servo_comm
     pwm_node_servo_send_move(cal, 1.5707)  # 90 deg.
     pwm_node_servo_close_comm(pwm_node_servo_comm)
+
+
+def open_claw():
+    pwm_node_hbridge_comm = pwm_node_servo_open_comm(
+        PWM_NODE_SERVO_INTERFACE, PWM_NODE_SERVO_CHANNEL, PWM_NODE_SERVO_BITRATE
+    )
+    hbridge_drive(pwm_node_hbridge_comm, 0.5, 3, reverse=False)
+    pwm_node_servo_close_comm(pwm_node_hbridge_comm)
+
+
+def close_claw():
+    pwm_node_hbridge_comm = pwm_node_servo_open_comm(
+        PWM_NODE_SERVO_INTERFACE, PWM_NODE_SERVO_CHANNEL, PWM_NODE_SERVO_BITRATE
+    )
+    hbridge_drive(pwm_node_hbridge_comm, 0.5, 3, reverse=True)
+    pwm_node_servo_close_comm(pwm_node_hbridge_comm)
