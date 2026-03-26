@@ -1,83 +1,20 @@
-"""CAN-based PWM servo driver using the can_pwm_node DBC definition.
-
-This module provides a high-level API for commanding servos over CAN via the
-PWM_NODE firmware. Commands are encoded using the project DBC file and sent with
-python-can, using the shared JointCal from robot_arm to stay consistent with the
-other servo drivers (motor_rsbl120.py / motor_sts3215.py).
-
-JointCal field usage:
-    comm          -> open can.BusABC instance
-    servo_id      -> PWM_NODE channel number (1-4)
-    sign          -> direction polarity (+1 or -1)
-    hardware_zero -> angular offset so physical home = 0 rad
-
-DBC summary (can_pwm_node.dbc):
-    command_servo_1  (CAN ID  64) - signal command_servo_1_pwm  [500, 2500] us
-    command_servo_2  (CAN ID  96) - signal command_servo_2_pwm  [500, 2500] us
-    command_servo_3  (CAN ID 128) - signal command_servo_3_pwm  [500, 2500] us
-    command_servo_4  (CAN ID 160) - signal command_servo_4_pwm  [500, 2500] us
-
-    All signals are 16-bit unsigned, little-endian, factor=1, offset=0.
-
-PWM -> radians convention (tunable via module-level constants):
-    1500 us  ->   0.0 rad   (servo centre / neutral)
-    1000 us  ->  -PI/2 rad
-    2000 us  ->  +PI/2 rad
-    -> RAD_PER_US = PI / 1000
-
-    These values are standard RC-servo approximations. Adjust PWM_CENTER_US
-    and RAD_PER_US to match your actual hardware limits.
-"""
+"""CAN-based PWM servo driver using the can_pwm_node DBC definition."""
 
 from __future__ import annotations
 
 import time
-from pathlib import Path
 
 import can
-import cantools
 import numpy as np
 
+from drivers.motor_pwm_node_constants import db, CHANNEL_TO_MSG, CHANNEL_TO_SIG
 from robot_arm import JointCal
-
-# ---------------------------------------------------------------------------
-# DBC path - update if the file is moved relative to this module
-# ---------------------------------------------------------------------------
-
-DBC_PATH: Path = Path(__file__).parent / "pwm_node_driver/can_pwm_node.dbc"
-"""Absolute path to the CAN database file used for message encoding."""
-
-# ---------------------------------------------------------------------------
-# PWM <-> radians conversion constants (tune these for your hardware)
-# ---------------------------------------------------------------------------
 
 # Using a variant of the MG90s hobby servos:
 PWM_MIN_US: int = 500  # Minimum pulse width from DBC range
 PWM_MAX_US: int = 2500  # Maximum pulse width from DBC range
 PWM_CENTER_US: int = 500  # Pulse width that maps to 0.0 rad (servo centre)
 RAD_PER_US: float = (np.pi) / 2600  # Radians per microsecond from centre
-
-# ---------------------------------------------------------------------------
-# CAN channel -> DBC message name mapping (channels 1-4 == servo_id 1-4)
-# ---------------------------------------------------------------------------
-
-_CHANNEL_TO_MSG: dict[int, str] = {
-    1: "command_servo_1",
-    2: "command_servo_2",
-    3: "command_servo_3",
-    4: "command_servo_4",
-}
-
-# ---------------------------------------------------------------------------
-# Module-level DBC database (loaded once on import)
-# ---------------------------------------------------------------------------
-
-_db: cantools.database.Database = cantools.database.load_file(str(DBC_PATH))
-
-
-# ---------------------------------------------------------------------------
-# CAN bus open/close helpers
-# ---------------------------------------------------------------------------
 
 
 def pwm_node_servo_open_comm(
@@ -156,27 +93,25 @@ def pwm_node_servo_send_move(
     Encodes the target angle as a PWM pulse width using the DBC definition and
     transmits the corresponding CAN frame on `cal.comm`.
 
-    `cal.servo_id` selects the PWM channel (1-4).
+    `cal.servo_id` selects the PWM channel (1-8).
     `move_time_ms` is accepted for signature compatibility with
     :func:`execute_q_frames` but is not used - the PWM_NODE has no
     timed-move concept.
 
     Args:
         cal:          :class:`JointCal` whose `comm` is the CAN bus and
-                      `servo_id` is the channel number (1-4).
+                      `servo_id` is the channel number (1-8).
         pos_rad:      Desired position in radians (software frame).
         move_time_ms: Ignored; present for compatibility with
                       :func:`execute_q_frames`.
 
     Raises:
-        KeyError: If `cal.servo_id` is not in 1-4.
+        KeyError: If `cal.servo_id` is not in 1-8.
     """
     pulse_us = _rad_to_us(pos_rad, cal)
-    msg_name = _CHANNEL_TO_MSG[cal.servo_id]
-    signal_name = f"{msg_name}_pwm"
 
-    dbc_msg = _db.get_message_by_name(msg_name)
-    data = dbc_msg.encode({signal_name: pulse_us})
+    dbc_msg = db.get_message_by_name(CHANNEL_TO_MSG[cal.servo_id])
+    data = dbc_msg.encode({CHANNEL_TO_SIG[cal.servo_id]: pulse_us})
     frame = can.Message(
         arbitration_id=dbc_msg.frame_id,
         data=data,

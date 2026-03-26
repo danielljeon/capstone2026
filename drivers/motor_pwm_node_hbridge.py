@@ -1,10 +1,5 @@
 """L298N H-bridge driver over the CAN PWM node.
 
-Channels are hardcoded to match the physical wiring:
-    CH2 -> L298N IN1  (direction)
-    CH3 -> L298N IN2  (direction)
-    CH4 -> L298N EN   (speed / PWM duty)
-
 Speed is a normalised float in [0.0, 1.0] mapping to the EN PWM pulse width.
 Direction is set by the sign passed to :func:`hbridge_drive`.
 
@@ -15,53 +10,25 @@ constants at the top of this file to match your firmware's thresholds.
 from __future__ import annotations
 
 import time
-from pathlib import Path
+from dataclasses import dataclass
 
 import can
-import cantools
 import numpy as np
 
-# ---------------------------------------------------------------------------
-# DBC
-# ---------------------------------------------------------------------------
+from drivers.motor_pwm_node_constants import pwm_node_send
 
-DBC_PATH: Path = Path(__file__).parent / "pwm_node_driver/can_pwm_node.dbc"
-_db: cantools.database.Database = cantools.database.load_file(str(DBC_PATH))
 
-# ---------------------------------------------------------------------------
-# Hardcoded channel assignments
-# ---------------------------------------------------------------------------
+@dataclass
+class HBridge:
+    channel_in1: int
+    channel_in2: int
+    channel_enable: int
 
-_CH_IN1 = 2
-_CH_IN2 = 3
-_CH_EN = 4
-
-# ---------------------------------------------------------------------------
-# Tunable constants
-# ---------------------------------------------------------------------------
 
 PWM_DIGITAL_HIGH_US: int = 20000  # pulse width the firmware reads as logic HIGH
 PWM_DIGITAL_LOW_US: int = 0  # pulse width the firmware reads as logic LOW
 PWM_EN_MIN_US: int = 0  # EN pulse width at speed = 0.0
 PWM_EN_MAX_US: int = 20000  # EN pulse width at speed = 1.0
-
-
-# ---------------------------------------------------------------------------
-# Internal helper
-# ---------------------------------------------------------------------------
-
-
-def _send(bus: can.BusABC, channel: int, pulse_us: int) -> None:
-    msg_name = f"command_servo_{channel}"
-    dbc_msg = _db.get_message_by_name(msg_name)
-    data = dbc_msg.encode({f"{msg_name}_pwm": int(pulse_us)})
-    bus.send(
-        can.Message(
-            arbitration_id=dbc_msg.frame_id,
-            data=data,
-            is_extended_id=False,
-        )
-    )
 
 
 def _en_us(speed: float) -> int:
@@ -74,25 +41,24 @@ def _en_us(speed: float) -> int:
     )
 
 
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
-
-
 def hbridge_drive(
     bus: can.BusABC,
+    hbridge: HBridge,
     speed: float,
     duration_s: float,
     *,
+    brake: bool = False,
     reverse: bool = False,
 ) -> None:
     """Drive the H-bridge at *speed* for *duration_s* seconds, then brake.
 
     Args:
-        bus:        Open CAN bus.
-        speed:      Normalised speed in [0.0, 1.0].
+        bus: Open CAN bus.
+        hbridge: HBridge object to identify PWM Node channels.
+        speed: Normalised speed in [0.0, 1.0].
         duration_s: How long to run before braking, in seconds.
-        reverse:    If True, reverses the motor direction.
+        brake: If True, brakes the motor after moving, default False.
+        reverse: If True, reverses the motor direction, default False.
     """
     in1_us = PWM_DIGITAL_LOW_US if reverse else PWM_DIGITAL_HIGH_US
     in2_us = PWM_DIGITAL_HIGH_US if reverse else PWM_DIGITAL_LOW_US
@@ -103,33 +69,39 @@ def hbridge_drive(
         f"speed={speed:.2f} duration={duration_s}s"
     )
 
-    _send(bus, _CH_IN1, in1_us)
-    _send(bus, _CH_IN2, in2_us)
-    _send(bus, _CH_EN, _en_us(speed))
+    pwm_node_send(bus, hbridge.channel_in1, in1_us)
+    pwm_node_send(bus, hbridge.channel_in2, in2_us)
+    pwm_node_send(bus, hbridge.channel_enable, _en_us(speed))
 
     time.sleep(duration_s)
-    hbridge_brake(bus)
+
+    if brake:
+        hbridge_brake(bus, hbridge)
+    else:
+        hbridge_coast(bus, hbridge)
 
 
-def hbridge_brake(bus: can.BusABC) -> None:
+def hbridge_brake(bus: can.BusABC, hbridge: HBridge) -> None:
     """Active brake: IN1=HIGH, IN2=HIGH, EN=min.
 
     Args:
         bus: Open CAN bus.
+        hbridge: HBridge object to identify PWM Node channels.
     """
     print("DEBUG: hbridge_brake")
-    _send(bus, _CH_IN1, PWM_DIGITAL_HIGH_US)
-    _send(bus, _CH_IN2, PWM_DIGITAL_HIGH_US)
-    _send(bus, _CH_EN, PWM_EN_MIN_US)
+    pwm_node_send(bus, hbridge.channel_in1, PWM_DIGITAL_HIGH_US)
+    pwm_node_send(bus, hbridge.channel_in2, PWM_DIGITAL_HIGH_US)
+    pwm_node_send(bus, hbridge.channel_enable, PWM_EN_MIN_US)
 
 
-def hbridge_coast(bus: can.BusABC) -> None:
+def hbridge_coast(bus: can.BusABC, hbridge: HBridge) -> None:
     """Coast / free-wheel: IN1=LOW, IN2=LOW, EN=min.
 
     Args:
         bus: Open CAN bus.
+        hbridge: HBridge object to identify PWM Node channels.
     """
     print("DEBUG: hbridge_coast")
-    _send(bus, _CH_IN1, PWM_DIGITAL_LOW_US)
-    _send(bus, _CH_IN2, PWM_DIGITAL_LOW_US)
-    _send(bus, _CH_EN, PWM_EN_MIN_US)
+    pwm_node_send(bus, hbridge.channel_in1, PWM_DIGITAL_LOW_US)
+    pwm_node_send(bus, hbridge.channel_in2, PWM_DIGITAL_LOW_US)
+    pwm_node_send(bus, hbridge.channel_enable, PWM_EN_MIN_US)
