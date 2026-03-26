@@ -47,7 +47,7 @@ def open_claw(hbridge: HBridge):
     pwm_node_hbridge_comm = pwm_node_servo_open_comm(
         PWM_NODE_SERVO_INTERFACE, PWM_NODE_SERVO_CHANNEL, PWM_NODE_SERVO_BITRATE
     )
-    hbridge_drive(pwm_node_hbridge_comm, hbridge, 1, 1, reverse=False)
+    hbridge_drive(pwm_node_hbridge_comm, hbridge, 1, 3, reverse=False)
     pwm_node_servo_close_comm(pwm_node_hbridge_comm)
 
 
@@ -55,22 +55,5 @@ def close_claw(hbridge: HBridge):
     pwm_node_hbridge_comm = pwm_node_servo_open_comm(
         PWM_NODE_SERVO_INTERFACE, PWM_NODE_SERVO_CHANNEL, PWM_NODE_SERVO_BITRATE
     )
-    hbridge_drive(pwm_node_hbridge_comm, hbridge, 1, 1, reverse=True)
+    hbridge_drive(pwm_node_hbridge_comm, hbridge, 1, 3, reverse=True)
     pwm_node_servo_close_comm(pwm_node_hbridge_comm)
-
-
-import time
-
-lock_tool_changer(EE1_TC)
-lock_tool_changer(EE2_TC)
-time.sleep(3)
-release_tool_changer(EE1_TC)
-release_tool_changer(EE2_TC)
-
-# time.sleep(1)
-# open_claw(EE1_TOOL)
-# open_claw(EE2_TOOL)
-# time.sleep(1)
-# close_claw(EE1_TOOL)
-# close_claw(EE2_TOOL)
-# time.sleep(1)
