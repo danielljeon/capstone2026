@@ -1,11 +1,9 @@
 import time
 
-from constants import *
 from drivers.motor_pwm_node_constants import db
 from drivers.motor_pwm_node_hbridge import HBridge, hbridge_drive, hbridge_coast
 from drivers.motor_pwm_node_servo import (
     pwm_node_servo_send_move,
-    pwm_node_servo_open_comm,
     pwm_node_servo_close_comm,
 )
 from robot_arm import *

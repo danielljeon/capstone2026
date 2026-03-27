@@ -6,7 +6,7 @@ from drivers.motor_st3215 import (
 )
 from robot_arm import JointCal, motor_init, motor_deinit
 
-joint_cals = [
+JOINTS = [
     JointCal(
         name="st3215-12_1",
         comm=None,
