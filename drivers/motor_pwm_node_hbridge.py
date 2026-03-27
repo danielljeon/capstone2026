@@ -85,7 +85,7 @@ def hbridge_drive(
 
 
 def hbridge_brake(bus: can.BusABC, hbridge: HBridge) -> None:
-    """Active brake: IN1=HIGH, IN2=HIGH, EN=min.
+    """Active brake: IN1=HIGH, IN2=HIGH, EN=HIGH.
 
     Args:
         bus: Open CAN bus.
@@ -94,11 +94,11 @@ def hbridge_brake(bus: can.BusABC, hbridge: HBridge) -> None:
     print("DEBUG: hbridge_brake")
     pwm_node_send(bus, hbridge.channel_in1, PWM_DIGITAL_HIGH_US)
     pwm_node_send(bus, hbridge.channel_in2, PWM_DIGITAL_HIGH_US)
-    pwm_node_send(bus, hbridge.channel_enable, PWM_EN_MIN_US)
+    pwm_node_send(bus, hbridge.channel_enable, PWM_DIGITAL_HIGH_US)
 
 
 def hbridge_coast(bus: can.BusABC, hbridge: HBridge) -> None:
-    """Coast / free-wheel: IN1=LOW, IN2=LOW, EN=min.
+    """Coast / free-wheel: IN1=LOW, IN2=LOW, EN=LOW.
 
     Args:
         bus: Open CAN bus.
@@ -107,4 +107,4 @@ def hbridge_coast(bus: can.BusABC, hbridge: HBridge) -> None:
     print("DEBUG: hbridge_coast")
     pwm_node_send(bus, hbridge.channel_in1, PWM_DIGITAL_LOW_US)
     pwm_node_send(bus, hbridge.channel_in2, PWM_DIGITAL_LOW_US)
-    pwm_node_send(bus, hbridge.channel_enable, PWM_EN_MIN_US)
+    pwm_node_send(bus, hbridge.channel_enable, PWM_DIGITAL_LOW_US)
