@@ -1,7 +1,7 @@
 import time
 
 from constants import *
-from drivers.motor_joints import joint_cals
+from robot.motor_joints import joint_cals
 from drivers.motor_rsbl120 import (
     rsbl120_open_comm,
     rsbl120_close_comm,

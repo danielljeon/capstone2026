@@ -20,6 +20,7 @@ from drivers.motor_pwm_node_constants import pwm_node_send
 
 @dataclass
 class HBridge:
+    bus: can.BusABC | None
     channel_in1: int
     channel_in2: int
     channel_enable: int

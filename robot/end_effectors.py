@@ -18,6 +18,7 @@ EE1_TC = JointCal(
     hardware_zero=0,
 )
 EE1_TOOL = HBridge(
+    bus=None,
     channel_in1=2,
     channel_in2=3,
     channel_enable=4,
@@ -31,6 +32,7 @@ EE2_TC = JointCal(
     hardware_zero=0,
 )
 EE2_TOOL = HBridge(
+    bus=None,
     channel_in1=6,
     channel_in2=7,
     channel_enable=8,
@@ -38,21 +40,12 @@ EE2_TOOL = HBridge(
 )
 
 
-def _run_tool_changer(cal: JointCal, pos_rad: float):
-    pwm_node_servo_comm = pwm_node_servo_open_comm(
-        PWM_NODE_SERVO_INTERFACE, PWM_NODE_SERVO_CHANNEL, PWM_NODE_SERVO_BITRATE
-    )
-    cal.comm = pwm_node_servo_comm
-    pwm_node_servo_send_move(cal, pos_rad)
-    pwm_node_servo_close_comm(pwm_node_servo_comm)
-
-
 def release_tool_changer(cal: JointCal):
-    _run_tool_changer(cal, 0)
+    pwm_node_servo_send_move(cal, 0)
 
 
 def lock_tool_changer(cal: JointCal):
-    _run_tool_changer(cal, 1.5707)  # 90 deg.
+    pwm_node_servo_send_move(cal, 1.5707)  # 90 deg.
 
 
 def run_tool_end(
@@ -62,20 +55,19 @@ def run_tool_end(
     reverse: bool,
     current_limit: float | None = None,
 ):
-    bus = pwm_node_servo_open_comm(
-        PWM_NODE_SERVO_INTERFACE, PWM_NODE_SERVO_CHANNEL, PWM_NODE_SERVO_BITRATE
-    )
     try:
         if current_limit is None:
-            hbridge_drive(bus, hbridge, speed, duration_s, reverse=reverse)
+            hbridge_drive(
+                hbridge.bus, hbridge, speed, duration_s, reverse=reverse
+            )
 
         else:
             start = time.time()
 
-            hbridge_drive(bus, hbridge, speed, 0, reverse=reverse)
+            hbridge_drive(hbridge.bus, hbridge, speed, 0, reverse=reverse)
 
             while (time.time() - start) < duration_s:
-                msg = bus.recv(timeout=0.1)
+                msg = hbridge.bus.recv(timeout=0.1)
 
                 if (
                     msg
@@ -88,5 +80,5 @@ def run_tool_end(
                         break
 
     finally:
-        hbridge_coast(bus, hbridge)
-        pwm_node_servo_close_comm(bus)
+        hbridge_coast(hbridge.bus, hbridge)
+        pwm_node_servo_close_comm(hbridge.bus)
