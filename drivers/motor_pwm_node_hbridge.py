@@ -8,7 +8,7 @@ constants at the top of this file to match your firmware's thresholds.
 """
 
 from __future__ import annotations
-
+from cantools.database import Message
 import time
 from dataclasses import dataclass
 
@@ -23,6 +23,7 @@ class HBridge:
     channel_in1: int
     channel_in2: int
     channel_enable: int
+    current_message: Message
 
 
 PWM_DIGITAL_HIGH_US: int = 20000  # pulse width the firmware reads as logic HIGH
@@ -48,6 +49,7 @@ def hbridge_drive(
     duration_s: float,
     *,
     brake: bool = False,
+    coast: bool = False,
     reverse: bool = False,
 ) -> None:
     """Drive the H-bridge at *speed* for *duration_s* seconds, then brake.
@@ -58,6 +60,7 @@ def hbridge_drive(
         speed: Normalised speed in [0.0, 1.0].
         duration_s: How long to run before braking, in seconds.
         brake: If True, brakes the motor after moving, default False.
+        coast: If True, coast the motor after moving, brake overrides this!
         reverse: If True, reverses the motor direction, default False.
     """
     in1_us = PWM_DIGITAL_LOW_US if reverse else PWM_DIGITAL_HIGH_US
@@ -75,10 +78,10 @@ def hbridge_drive(
 
     time.sleep(duration_s)
 
+    if coast and not brake:
+        hbridge_coast(bus, hbridge)
     if brake:
         hbridge_brake(bus, hbridge)
-    else:
-        hbridge_coast(bus, hbridge)
 
 
 def hbridge_brake(bus: can.BusABC, hbridge: HBridge) -> None:
