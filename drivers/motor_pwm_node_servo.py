@@ -21,6 +21,7 @@ def pwm_node_servo_open_comm(
     interface: str = "socketcan",
     channel: str | int = "can0",
     bitrate: int = 500_000,
+    filters: list[dict[str, int | bool]] | None = None,
 ) -> can.BusABC:
     """Open a CAN bus connection.
 
@@ -32,6 +33,7 @@ def pwm_node_servo_open_comm(
                    `"pcan"`, `"kvaser"`).
         channel:   OS channel name (e.g. `"can0"`).
         bitrate:   Bus bitrate in bits/s (default 500 kbit/s).
+        filters:   Bus filters.
 
     Returns:
         An open :class:`can.BusABC` instance ready for use.
@@ -41,7 +43,10 @@ def pwm_node_servo_open_comm(
         f"channel={channel}"
     )
     bus = can.interface.Bus(
-        interface=interface, channel=channel, bitrate=bitrate
+        interface=interface,
+        channel=channel,
+        bitrate=bitrate,
+        can_filters=filters,
     )
     time.sleep(0.05)  # allow hardware to settle
     return bus
