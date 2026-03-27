@@ -36,11 +36,15 @@ def set_comms(
     rsbl120_comm_target: bool = True,
     st3215_comm_target: bool = True,
 ) -> tuple[can.BusABC, serial.Serial, serial.Serial]:
-    can_bus, rsbl120_comm, st3215_comm = __init_comms()
+    can_bus, rsbl120_comm, st3215_comm = __init_comms(
+        can_bus_target, rsbl120_comm_target, st3215_comm_target
+    )
 
-    for ee in [EE1_TC, EE1_TOOL, EE2_TC, EE2_TOOL]:
-        if can_bus_target:
-            ee.comm = can_bus_target
+    if can_bus_target:
+        for ee_tc in [EE1_TC, EE2_TC]:
+            ee_tc.comm = can_bus
+        for tool in [EE1_TOOL, EE2_TOOL]:
+            tool.bus = can_bus
 
     for joint in JOINTS:
         if rsbl120_comm_target and "rsbl120" in joint.name:
