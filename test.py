@@ -45,3 +45,7 @@ def main():
 
     finally:
         deinit_comms(can_bus, rsbl120_comm, st3215_comm)
+
+
+if __name__ == "__main__":
+    main()
