@@ -1,0 +1,134 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_: PWM_NODE_01 COMMANDER LISTENER REQUESTER PWM_NODE_02
+
+
+BO_ 33 state_01: 1 PWM_NODE_01
+ SG_ system_state : 0|8@1+ (1,0) [0|255] "" LISTENER
+
+BO_ 65 command_servo_1_01: 2 COMMANDER
+ SG_ command_servo_1_pwm : 0|16@1+ (1,0) [0|20000] "us" PWM_NODE_01
+
+BO_ 97 command_servo_2_01: 2 COMMANDER
+ SG_ command_servo_2_pwm : 0|16@1+ (1,0) [0|20000] "us" PWM_NODE_01
+
+BO_ 129 command_servo_3_01: 2 COMMANDER
+ SG_ command_servo_3_pwm : 0|16@1+ (1,0) [0|20000] "us" PWM_NODE_01
+
+BO_ 161 command_servo_4_01: 2 COMMANDER
+ SG_ command_servo_4_pwm : 0|16@1+ (1,0) [0|20000] "us" PWM_NODE_01
+
+BO_ 193 datetime_set_01: 7 COMMANDER
+ SG_ year : 0|8@1+ (1,0) [0|99] "year" PWM_NODE_01
+ SG_ month : 8|8@1+ (1,0) [1|12] "month" PWM_NODE_01
+ SG_ date : 16|8@1+ (1,0) [1|31] "day" PWM_NODE_01
+ SG_ weekday : 24|8@1+ (1,0) [1|7] "weekday" PWM_NODE_01
+ SG_ hours : 32|8@1+ (1,0) [0|23] "hour" PWM_NODE_01
+ SG_ minutes : 40|8@1+ (1,0) [0|59] "min" PWM_NODE_01
+ SG_ seconds : 48|8@1+ (1,0) [0|59] "sec" PWM_NODE_01
+
+BO_ 225 datetime_get_01: 0 REQUESTER
+
+BO_ 257 datetime_get_response_01: 7 PWM_NODE_01
+ SG_ year : 0|8@1+ (1,0) [0|99] "year" REQUESTER
+ SG_ month : 8|8@1+ (1,0) [1|12] "month" REQUESTER
+ SG_ date : 16|8@1+ (1,0) [1|31] "day" REQUESTER
+ SG_ weekday : 24|8@1+ (1,0) [1|7] "weekday" REQUESTER
+ SG_ hours : 32|8@1+ (1,0) [0|23] "hour" REQUESTER
+ SG_ minutes : 40|8@1+ (1,0) [0|59] "min" REQUESTER
+ SG_ seconds : 48|8@1+ (1,0) [0|59] "sec" REQUESTER
+
+BO_ 289 current_sense_01: 2 PWM_NODE_01
+ SG_ current_mA : 0|16@1- (0.1,0) [-3276.8|3276.7] "mA" LISTENER
+
+BO_ 961 version_get_01: 0 REQUESTER
+
+BO_ 993 version_get_response_01: 4 PWM_NODE_01
+ SG_ version_major : 0|8@1+ (1,0) [0|255] "major" REQUESTER
+ SG_ version_minor : 8|8@1+ (1,0) [0|255] "minor" REQUESTER
+ SG_ version_patch : 16|8@1+ (1,0) [0|255] "patch" REQUESTER
+ SG_ version_identifier : 24|8@1+ (1,0) [0|255] "ascii" REQUESTER
+
+BO_ 34 state_02: 1 PWM_NODE_02
+ SG_ system_state : 0|8@1+ (1,0) [0|255] "" LISTENER
+
+BO_ 66 command_servo_1_02: 2 COMMANDER
+ SG_ command_servo_1_pwm : 0|16@1+ (1,0) [0|20000] "us" PWM_NODE_02
+
+BO_ 98 command_servo_2_02: 2 COMMANDER
+ SG_ command_servo_2_pwm : 0|16@1+ (1,0) [0|20000] "us" PWM_NODE_02
+
+BO_ 130 command_servo_3_02: 2 COMMANDER
+ SG_ command_servo_3_pwm : 0|16@1+ (1,0) [0|20000] "us" PWM_NODE_02
+
+BO_ 162 command_servo_4_02: 2 COMMANDER
+ SG_ command_servo_4_pwm : 0|16@1+ (1,0) [0|20000] "us" PWM_NODE_02
+
+BO_ 194 datetime_set_02: 7 COMMANDER
+ SG_ year : 0|8@1+ (1,0) [0|99] "year" PWM_NODE_02
+ SG_ month : 8|8@1+ (1,0) [1|12] "month" PWM_NODE_02
+ SG_ date : 16|8@1+ (1,0) [1|31] "day" PWM_NODE_02
+ SG_ weekday : 24|8@1+ (1,0) [1|7] "weekday" PWM_NODE_02
+ SG_ hours : 32|8@1+ (1,0) [0|23] "hour" PWM_NODE_02
+ SG_ minutes : 40|8@1+ (1,0) [0|59] "min" PWM_NODE_02
+ SG_ seconds : 48|8@1+ (1,0) [0|59] "sec" PWM_NODE_02
+
+BO_ 226 datetime_get_02: 0 REQUESTER
+
+BO_ 258 datetime_get_response_02: 7 PWM_NODE_02
+ SG_ year : 0|8@1+ (1,0) [0|99] "year" REQUESTER
+ SG_ month : 8|8@1+ (1,0) [1|12] "month" REQUESTER
+ SG_ date : 16|8@1+ (1,0) [1|31] "day" REQUESTER
+ SG_ weekday : 24|8@1+ (1,0) [1|7] "weekday" REQUESTER
+ SG_ hours : 32|8@1+ (1,0) [0|23] "hour" REQUESTER
+ SG_ minutes : 40|8@1+ (1,0) [0|59] "min" REQUESTER
+ SG_ seconds : 48|8@1+ (1,0) [0|59] "sec" REQUESTER
+
+BO_ 290 current_sense_02: 2 PWM_NODE_02
+ SG_ current_mA : 0|16@1- (0.1,0) [-3276.8|3276.7] "mA" LISTENER
+
+BO_ 962 version_get_02: 0 REQUESTER
+
+BO_ 994 version_get_response_02: 4 PWM_NODE_02
+ SG_ version_major : 0|8@1+ (1,0) [0|255] "major" REQUESTER
+ SG_ version_minor : 8|8@1+ (1,0) [0|255] "minor" REQUESTER
+ SG_ version_patch : 16|8@1+ (1,0) [0|255] "patch" REQUESTER
+ SG_ version_identifier : 24|8@1+ (1,0) [0|255] "ascii" REQUESTER
+
+BA_DEF_  "MultiplexExtEnabled" ENUM  "No","Yes";
+BA_DEF_  "BusType" STRING ;
+BA_DEF_DEF_  "MultiplexExtEnabled" "No";
+BA_DEF_DEF_  "BusType" "CAN";
