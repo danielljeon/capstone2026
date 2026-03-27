@@ -124,6 +124,15 @@ def st3215_close_comm(comm: serial.Serial) -> None:
     comm.close()
 
 
+def __flush_echo(comm: serial.Serial, n_bytes: int) -> None:
+    """Discard the TX echo on a half-duplex bus."""
+    deadline = time.time() + comm.timeout
+    received = 0
+    while received < n_bytes and time.time() < deadline:
+        chunk = comm.read(n_bytes - received)
+        received += len(chunk)
+
+
 def __read_exact(comm: serial.Serial, n: int) -> bytes:
     """Read exactly *n* bytes from *comm*, respecting the port timeout.
 
@@ -466,6 +475,8 @@ def st3215_read_position_step(cal: JointCal) -> int:
     packet = __build_packet(cal.servo_id, INSTR_READ, params)
     cal.comm.write(packet)
 
+    __flush_echo(cal.comm, len(packet))
+
     reply = __read_reply(cal)
     if len(reply) < 2:
         raise RuntimeError(f"Position reply too short: {len(reply)} bytes")
@@ -497,6 +508,8 @@ def st3215_read_current_ma(cal: JointCal) -> float:
     params = bytes([ADDR_PRESENT_AMP, READ_LEN])
     packet = __build_packet(cal.servo_id, INSTR_READ, params)
     cal.comm.write(packet)
+
+    __flush_echo(cal.comm, len(packet))
 
     reply = __read_reply(cal)
     if len(reply) < 2:
