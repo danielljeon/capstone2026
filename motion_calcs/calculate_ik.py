@@ -2,6 +2,7 @@ import os
 
 from dotenv import load_dotenv
 
+from constants import IK_DT_S
 from motion_path import targets, plans
 from robot_arm import *
 
@@ -27,8 +28,6 @@ def confirm_keys(task: str | None = None):
 
 if __name__ == "__main__":
     try:
-        dt = 0.02
-
         confirm_keys("Calculate IK")  # Developer type "yes" to continue.
 
         # Calculate IK.
@@ -40,7 +39,7 @@ if __name__ == "__main__":
             ),
             targets_xyz=targets,
             segment_plans=plans,
-            dt=dt,
+            dt=IK_DT_S,
             min_segment_time=2.5,
             step_m=0.01,
             smooth_alpha=0.3,

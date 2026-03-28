@@ -24,8 +24,6 @@ if __name__ == "__main__":
     print_serial_ports()
 
     try:
-        dt = 0.02
-
         # Load IK calculations.
         q_frames = load_q_frames_csv(IK_FILE_CSV)
 
@@ -50,9 +48,12 @@ if __name__ == "__main__":
 
             # Execute IK.
             execute_q_frames(
-                q_frames, JOINTS, dt=dt, move_time_ms=30, settle_ms=50
+                q_frames,
+                JOINTS,
+                dt=IK_DT_S,
+                move_time_ms=int(IK_DT_S * 1000),
+                settle_ms=50,
             )
-            pass
 
         finally:
             # Deinitialize each joint.
