@@ -74,7 +74,8 @@ def main():
 
         # TODO: uncomment.
         # for joint in JOINTS:
-        #     joint.move(position_rad=0, move_time_ms=500)
+        #     if joint.comm is not None:
+        #         joint.move(position_rad=0, move_time_ms=500)
 
     finally:
         deinit_comms(can_bus, rsbl120_comm, st3215_comm)
