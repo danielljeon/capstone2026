@@ -49,7 +49,7 @@ def set_comms(
     for joint in JOINTS:
         if rsbl120_comm_target and "rsbl120" in joint.name:
             joint.comm = rsbl120_comm
-        elif st3215_comm_target and "st3215" in joint.name:
+        if st3215_comm_target and "st3215" in joint.name:
             joint.comm = st3215_comm
 
     return can_bus, rsbl120_comm, st3215_comm
