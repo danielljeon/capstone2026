@@ -107,10 +107,24 @@ def st3215_open_comm(port: str) -> serial.Serial:
 
     Returns:
         An open :class:`serial.Serial` instance ready for communication.
+        ``comm._echo`` is set to ``True`` if the adapter loops back TX bytes
+        onto RX (half-duplex echo), ``False`` otherwise.
     """
     print(f"DEBUG: st3215_open_comm {port}")
     comm = serial.Serial(port, 1_000_000, timeout=0.1)
     time.sleep(0.2)  # allow hardware to settle
+
+    # Detect whether the USB adapter echoes TX bytes back on RX. Send a single
+    # 0x00 byte (ignored by servos - not a valid FF FF preamble) and check if it
+    # comes back. Must run on an idle bus before any transaction.
+    comm.reset_input_buffer()
+    comm.write(bytes([0x00]))
+    time.sleep(0.005)  # 5 ms >> 10 us echo round-trip at 1 Mbaud
+    back = comm.read(1)
+    comm.reset_input_buffer()
+    comm._echo = back == bytes([0x00])
+    print(f"DEBUG: st3215_open_comm echo={'yes' if comm._echo else 'no'}")
+
     return comm
 
 
@@ -193,11 +207,15 @@ def __write_u8(
         packet_id: Override servo ID for this packet; uses ``cal.servo_id`` if ``None``.
     """
     servo_id = cal.servo_id if packet_id is None else packet_id
-    INSTR_WRITE = 0x03
-    packet = __build_packet(
-        servo_id, INSTR_WRITE, bytes([addr & 0xFF, value & 0xFF])
-    )
+    packet = __build_packet(servo_id, 0x03, bytes([addr & 0xFF, value & 0xFF]))
     cal.comm.write(packet)
+    if getattr(cal.comm, "_echo", True):
+        __flush_echo(cal.comm, len(packet))
+    if servo_id != BROADCAST_ID:  # broadcast suppresses replies
+        try:
+            __read_reply(cal)  # consume and discard write-ack
+        except RuntimeError:
+            pass
 
 
 def __write_u16(
@@ -212,11 +230,17 @@ def __write_u16(
         packet_id: Override servo ID for this packet; uses ``cal.servo_id`` if ``None``.
     """
     servo_id = cal.servo_id if packet_id is None else packet_id
-    INSTR_WRITE = 0x03
     v = int(value) & 0xFFFF
     params = bytes([addr & 0xFF, v & 0xFF, (v >> 8) & 0xFF])
-    packet = __build_packet(servo_id, INSTR_WRITE, params)
+    packet = __build_packet(servo_id, 0x03, params)
     cal.comm.write(packet)
+    if getattr(cal.comm, "_echo", True):
+        __flush_echo(cal.comm, len(packet))
+    if servo_id != BROADCAST_ID:
+        try:
+            __read_reply(cal)
+        except RuntimeError:
+            pass
 
 
 # ---------------------------------------------------------------------------
@@ -469,14 +493,13 @@ def st3215_read_position_step(cal: JointCal) -> int:
     INSTR_READ = 0x02
     READ_LEN = 2
 
-    # cal.comm.reset_input_buffer()  # TODO
+    cal.comm.reset_input_buffer()
 
     params = bytes([ADDR_PRESENT_POS, READ_LEN])
     packet = __build_packet(cal.servo_id, INSTR_READ, params)
     cal.comm.write(packet)
-
-    __flush_echo(cal.comm, len(packet))
-
+    if getattr(cal.comm, "_echo", True):
+        __flush_echo(cal.comm, len(packet))
     reply = __read_reply(cal)
     if len(reply) < 2:
         raise RuntimeError(f"Position reply too short: {len(reply)} bytes")
@@ -503,14 +526,13 @@ def st3215_read_current_ma(cal: JointCal) -> float:
     INSTR_READ = 0x02
     READ_LEN = 2
 
-    # cal.comm.reset_input_buffer()  # TODO
+    cal.comm.reset_input_buffer()
 
     params = bytes([ADDR_PRESENT_AMP, READ_LEN])
     packet = __build_packet(cal.servo_id, INSTR_READ, params)
     cal.comm.write(packet)
-
-    __flush_echo(cal.comm, len(packet))
-
+    if getattr(cal.comm, "_echo", True):
+        __flush_echo(cal.comm, len(packet))
     reply = __read_reply(cal)
     if len(reply) < 2:
         raise RuntimeError(f"Current reply too short: {len(reply)} bytes")
@@ -602,3 +624,10 @@ def st3215_send_move(
     )
     packet = __build_packet(cal.servo_id, INSTR_WRITE, params)
     cal.comm.write(packet)
+
+    if getattr(cal.comm, "_echo", True):
+        __flush_echo(cal.comm, len(packet))
+    try:
+        __read_reply(cal)
+    except RuntimeError:
+        pass
