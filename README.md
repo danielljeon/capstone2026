@@ -1,6 +1,5 @@
 # capstone2026
 
-Robot arm Mechatronics undergraduate capstone project
+![black_formatter](https://github.com/danielljeon/capstone2026/actions/workflows/black_formatter.yaml/badge.svg)
 
-[main.py](main.py)
-[calculate_ik.py](calculate_ik.py)
+Robot arm Mechatronics undergraduate capstone project.
