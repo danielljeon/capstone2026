@@ -1,6 +1,4 @@
-import numpy as np
-
-from robot_arm import SegmentPlan
+from robot_arm import SegmentPlan, JointPose
 
 # Example segment plans.
 horizontal_punch_segment = SegmentPlan(
@@ -29,19 +27,18 @@ vertical_up_segment = SegmentPlan(
 )
 
 # Targets in meters.
-targets = np.array(
-    [
-        [-0.28, 0.3, 0.15],
-        [-0.25, 0.3, 0.15],
-        [-0.25, 0.3, 0.0],
-        [-0.25, 0.3, 0.15],
-    ],
-    dtype=float,
-)
+targets = [
+    JointPose([0.52, 0, 2.97, -0.17, 0, 0]),
+    [-0.2, 0.3, 0.15],
+    [-0.18, 0.3, 0.15],
+    [-0.18, 0.3, 0.0],
+    [-0.18, 0.3, 0.15],
+]
 
 # One plan per segment between targets (len(targets)-1).
 plans = [
     # SegmentPlan(mode="free"),
+    None,
     vertical_rslide_segment,
     vertical_down_segment,
     vertical_up_segment,

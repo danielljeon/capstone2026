@@ -50,14 +50,12 @@ if __name__ == "__main__":
         confirm_keys("Animation")  # Developer type "yes" to continue.
 
         # Animate.
-        animate_q(
+        viser_animate_q(
             urdf_base_link=URDF_BASE_LINK,
             urdf_path=URDF_PATH,
             q_frames=q_frames,
             targets_xyz=targets,
-            show_frames=True,
-            frame_scale=0.05,
-            frame_stride=1,
+            dt=IK_DT_S,
         )
 
     except KeyboardInterrupt:
