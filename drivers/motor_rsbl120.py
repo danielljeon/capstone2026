@@ -547,3 +547,7 @@ def rsbl120_send_move(
     )
     packet = __build_packet(cal.servo_id, INSTR_WRITE, params)
     cal.comm.write(packet)
+    try:
+        _read_reply(cal)
+    except RuntimeError:
+        pass
