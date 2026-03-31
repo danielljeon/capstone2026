@@ -21,13 +21,29 @@ def confirm_keys(task: str | None = None):
     print("Continuing...")
 
 
+def pre_run():
+    # Quick start pose.
+    for i, j in enumerate(JOINTS):
+        if j.comm is not None:
+            j.move(START_POSE.q_active[i], 3000)
+    time.sleep(3)
+
+
+def run():
+    confirm_keys("RUN")  # Developer type "yes" to continue.
+
+    q_frames = load_q_frames_csv("motion_calcs/motion_20260331_101550.csv")
+    execute_q_frames(
+        q_frames,
+        JOINTS,
+        dt=IK_DT_S,
+        move_time_ms=int(IK_DT_S * 1000),
+        settle_ms=50,
+    )
+
+
 if __name__ == "__main__":
-    print_serial_ports()
-
     try:
-        # Load IK calculations.
-        q_frames = load_q_frames_csv(IK_FILE_CSV)
-
         can_bus, rsbl120_comm, st3215_comm = None, None, None
 
         try:
@@ -39,22 +55,8 @@ if __name__ == "__main__":
                 if joint.comm is not None:
                     joint.init()
 
-            # Quick start pose.
-            for i, joint in enumerate(JOINTS):
-                if joint.comm is not None:
-                    joint.move(START_POSE.q_active[i], 1000)
-            time.sleep(1)
-
-            confirm_keys("Motion")  # Developer type "yes" to continue.
-
-            # Execute IK.
-            execute_q_frames(
-                q_frames,
-                JOINTS,
-                dt=IK_DT_S,
-                move_time_ms=int(IK_DT_S * 1000),
-                settle_ms=50,
-            )
+            pre_run()  # Pre-run.
+            run()  # Run.
 
         finally:
             # Deinitialize each joint.
