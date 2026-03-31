@@ -22,7 +22,7 @@ import time
 import numpy as np
 import serial
 
-from robot_arm import JointCal, rad_to_step
+from robot_arm import JointCal, rad_to_step, step_to_rad
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -446,6 +446,13 @@ def rsbl120_read_position_step(cal: JointCal) -> int:
 
     # Low byte first, high byte second (little-endian per protocol spec)
     return reply[0] | (reply[1] << 8)
+
+
+def rsbl120_read_position_rad(cal: JointCal) -> float:
+    """Read the current absolute position in radians."""
+    return step_to_rad(
+        rsbl120_read_position_step(cal), cal, DEFAULT_STEP_PER_RAD
+    )
 
 
 def rsbl120_read_current_ma(cal: JointCal) -> float:
