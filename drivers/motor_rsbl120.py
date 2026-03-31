@@ -540,37 +540,24 @@ def rsbl120_send_move(
         move_time_ms: Unused; present for interface compatibility with
                       :func:`execute_q_frames`.
     """
-    raw_step = int(rad_to_step(pos_rad, cal, DEFAULT_STEP_PER_RAD))
-    target_step = raw_step % 4096
+    pos_step = int(rad_to_step(pos_rad, cal, DEFAULT_STEP_PER_RAD)) & 0xFFFF
 
-    if raw_step > 4095:
-        current_step = rsbl120_read_position_step(cal) & 0x7FFF
-        backward = (current_step - target_step) % 4096
-        forward = (target_step - current_step) % 4096
-        if backward < forward:
-            target_step |= 0x8000  # BIT15: cross the 0/4095 boundary
-
-    print(
-        f"DEBUG: send_move -> raw_step={raw_step}, "
-        f"target_step={target_step & 0x7FFF}, "
-        f"cross_zero={'yes' if target_step & 0x8000 else 'no'}"
-    )
+    print(f"DEBUG: send_move -> pos_step={pos_step}")
 
     INSTR_WRITE = 0x03
     params = bytes(
         [
             ADDR_TARGET_POS,
-            target_step & 0xFF,
-            (target_step >> 8) & 0xFF,
+            pos_step & 0xFF,
+            (pos_step >> 8) & 0xFF,  # 0x2A-0x2B: target position
             0x00,
-            0x00,  # PWM
+            0x00,  # 0x2C-0x2D: PWM (unused)
             0x00,
-            0x00,  # speed
+            0x00,  # 0x2E-0x2F: running speed (0 = servo max)
         ]
     )
     packet = __build_packet(cal.servo_id, INSTR_WRITE, params)
     cal.comm.write(packet)
-
     try:
         _read_reply(cal)
     except RuntimeError:

@@ -593,13 +593,6 @@ def st3215_send_move(
         0x2C-0x2D   Running time    (2 bytes, ms; 0 = speed-based, >0 = time-based)
         0x2E-0x2F   Running speed   (2 bytes, unit steps/s; 0 = servo max speed)
 
-    BIT15 of the target position word is set automatically when two conditions
-    are both true: the raw step value from ``rad_to_step`` exceeds 4095
-    (indicating the trajectory has crossed the range boundary), and the shorter
-    arc from the current servo position to the wrapped target crosses the 0/4095
-    boundary. For all in-range moves BIT15 is never set, so direction is
-    determined solely by the target position as normal.
-
     When *move_time_ms* > 0 the servo uses time-based mode: it linearly
     interpolates from its current position to *pos_rad* over exactly
     *move_time_ms* milliseconds, ignoring the speed register.  This is the
@@ -615,23 +608,12 @@ def st3215_send_move(
         move_time_ms: Duration for the move in milliseconds (0 = max speed).
         accel:        Acceleration ramp (0-254, unit 100 steps/s^2; 0 = no ramp).
     """
-    raw_step = int(rad_to_step(pos_rad, cal, DEFAULT_STEP_PER_RAD))
-    target_step = raw_step % 4096
-
-    if raw_step > 4095:
-        current_step = st3215_read_position_step(cal) & 0x7FFF
-        backward = (current_step - target_step) % 4096
-        forward = (target_step - current_step) % 4096
-        if backward < forward:
-            target_step |= 0x8000  # BIT15: cross the 0/4095 boundary
-
+    pos_step = int(rad_to_step(pos_rad, cal, DEFAULT_STEP_PER_RAD)) & 0xFFFF
     accel_raw = int(np.clip(accel, 0, 254))
     time_raw = int(np.clip(move_time_ms, 0, 32767))
 
     print(
-        f"DEBUG: send_move -> raw_step={raw_step}, "
-        f"target_step={target_step & 0x7FFF}, "
-        f"cross_zero={'yes' if target_step & 0x8000 else 'no'}, "
+        f"DEBUG: send_move -> pos_step={pos_step}, "
         f"move_time_ms={move_time_ms}, accel_raw={accel_raw}"
     )
 
@@ -640,12 +622,13 @@ def st3215_send_move(
         [
             ADDR_ACCELERATION,
             accel_raw,  # 0x29: acceleration
-            target_step & 0xFF,
-            (target_step >> 8) & 0xFF,  # 0x2A-0x2B: target position + BIT15
+            pos_step & 0xFF,
+            (pos_step >> 8) & 0xFF,  # 0x2A-0x2B: target position
             time_raw & 0xFF,
-            (time_raw >> 8) & 0xFF,  # 0x2C-0x2D: running time
+            (time_raw >> 8)
+            & 0xFF,  # 0x2C-0x2D: running time (ms; 0 = speed-based)
             0x00,
-            0x00,  # 0x2E-0x2F: running speed (0 = max)
+            0x00,  # 0x2E-0x2F: running speed (0 = max; ignored in time mode)
         ]
     )
     packet = __build_packet(cal.servo_id, INSTR_WRITE, params)
