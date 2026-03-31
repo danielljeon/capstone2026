@@ -522,10 +522,12 @@ def rsbl120_send_move(
         0x2C-0x2D  PWM open-loop    (2 bytes, written as 0 in position mode)
         0x2E-0x2F  Running speed    (2 bytes, 0 = servo max speed)
 
-    BIT15 of the target position word is set automatically when the shorter arc
-    to the target crosses the 0/4095 boundary (i.e. travelling in the negative
-    direction is shorter).  The direction is derived from the current servo
-    position, so no manual direction parameter is needed.
+    BIT15 of the target position word is set automatically when two conditions
+    are both true: the raw step value from ``rad_to_step`` exceeds 4095
+    (indicating the trajectory has crossed the range boundary), and the shorter
+    arc from the current servo position to the wrapped target crosses the 0/4095
+    boundary. For all in-range moves BIT15 is never set, so direction is
+    determined solely by the target position as normal.
 
     The RSBL120 does not have a time-based interpolation mode (register 0x2C
     is PWM, not running-time).  The servo always moves at its own maximum
@@ -538,13 +540,21 @@ def rsbl120_send_move(
         move_time_ms: Unused; present for interface compatibility with
                       :func:`execute_q_frames`.
     """
-    target_step = int(rad_to_step(pos_rad, cal, DEFAULT_STEP_PER_RAD)) % 4096
-    current_step = rsbl120_read_position_step(cal) & 0x7FFF
+    raw_step = int(rad_to_step(pos_rad, cal, DEFAULT_STEP_PER_RAD))
+    target_step = raw_step % 4096
 
-    forward = (target_step - current_step) % 4096
-    backward = (current_step - target_step) % 4096
-    if backward < forward:
-        target_step |= 0x8000  # BIT15: travel in negative direction
+    if raw_step > 4095:
+        current_step = rsbl120_read_position_step(cal) & 0x7FFF
+        backward = (current_step - target_step) % 4096
+        forward = (target_step - current_step) % 4096
+        if backward < forward:
+            target_step |= 0x8000  # BIT15: cross the 0/4095 boundary
+
+    print(
+        f"DEBUG: send_move -> raw_step={raw_step}, "
+        f"target_step={target_step & 0x7FFF}, "
+        f"cross_zero={'yes' if target_step & 0x8000 else 'no'}"
+    )
 
     INSTR_WRITE = 0x03
     params = bytes(
@@ -560,6 +570,7 @@ def rsbl120_send_move(
     )
     packet = __build_packet(cal.servo_id, INSTR_WRITE, params)
     cal.comm.write(packet)
+
     try:
         _read_reply(cal)
     except RuntimeError:
