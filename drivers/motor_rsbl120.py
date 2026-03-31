@@ -28,8 +28,8 @@ from robot_arm import JointCal, rad_to_step
 # Constants
 # ---------------------------------------------------------------------------
 
-DEFAULT_STEP_PER_RAD: float = 4095.0 / (300.0 * np.pi / 180.0)
-"""Steps per radian based on a 300-degree range mapped to 4095 steps."""
+DEFAULT_STEP_PER_RAD: float = 4096.0 / (2.0 * np.pi)
+"""Steps per radian based on a 360-degree range mapped to 4095 steps."""
 
 BROADCAST_ID = 0xFE
 """Broadcast ID: all servos receive the packet; no reply is sent (except PING)."""
