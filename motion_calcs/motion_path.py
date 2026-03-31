@@ -26,8 +26,11 @@ vertical_up_segment = SegmentPlan(
     target_orientation=[0, 0, 1],
 )
 
+START_POSE = JointPose([0, 1.05, 0, 0, -1.05, 0])
+
 # Targets in meters.
 targets = [
+    START_POSE,
     JointPose([0.52, 0, 2.97, -0.17, 0, 0]),
     [-0.2, 0.3, 0.15],
     [-0.18, 0.3, 0.15],
@@ -38,6 +41,7 @@ targets = [
 # One plan per segment between targets (len(targets)-1).
 plans = [
     # SegmentPlan(mode="free"),
+    None,
     None,
     vertical_rslide_segment,
     vertical_down_segment,

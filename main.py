@@ -1,6 +1,7 @@
 import time
 
 from constants import *
+from motion_calcs.motion_path import START_POSE
 from robot.motor_joints import JOINTS
 from robot_arm import *
 from setup import set_comms, deinit_comms
@@ -38,10 +39,10 @@ if __name__ == "__main__":
                 if joint.comm is not None:
                     joint.init()
 
-            # Quick Zero.
-            for joint in JOINTS:
+            # Quick start pose.
+            for i, joint in enumerate(JOINTS):
                 if joint.comm is not None:
-                    joint.move(0, 1000)
+                    joint.move(START_POSE.q_active[i], 1000)
             time.sleep(1)
 
             confirm_keys("Motion")  # Developer type "yes" to continue.
