@@ -608,7 +608,7 @@ def st3215_send_move(
         move_time_ms: Duration for the move in milliseconds (0 = max speed).
         accel:        Acceleration ramp (0-254, unit 100 steps/s^2; 0 = no ramp).
     """
-    pos_step = int(rad_to_step(pos_rad, cal, DEFAULT_STEP_PER_RAD)) & 0xFFFF
+    pos_step = int(rad_to_step(pos_rad, cal, DEFAULT_STEP_PER_RAD)) % (4095 + 1)
     accel_raw = int(np.clip(accel, 0, 254))
     time_raw = int(np.clip(move_time_ms, 0, 32767))
 

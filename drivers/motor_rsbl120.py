@@ -533,7 +533,7 @@ def rsbl120_send_move(
         move_time_ms: Unused; present for interface compatibility with
                       :func:`execute_q_frames`.
     """
-    pos_step = int(rad_to_step(pos_rad, cal, DEFAULT_STEP_PER_RAD)) & 0xFFFF
+    pos_step = int(rad_to_step(pos_rad, cal, DEFAULT_STEP_PER_RAD)) % (4095 + 1)
 
     print(f"DEBUG: send_move -> pos_step={pos_step}")
 
