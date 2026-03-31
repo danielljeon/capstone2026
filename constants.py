@@ -1,7 +1,5 @@
 # constants.py
 
-IK_FILE_CSV = ".csv"
-
 # CAN bus.
 PWM_NODE_SERVO_INTERFACE = "socketcan"
 PWM_NODE_SERVO_CHANNEL = "can0"
