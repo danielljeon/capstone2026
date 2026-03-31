@@ -593,10 +593,12 @@ def st3215_send_move(
         0x2C-0x2D   Running time    (2 bytes, ms; 0 = speed-based, >0 = time-based)
         0x2E-0x2F   Running speed   (2 bytes, unit steps/s; 0 = servo max speed)
 
-    BIT15 of the target position word is set automatically when the shorter arc
-    to the target crosses the 0/4095 boundary (i.e. travelling in the negative
-    direction is shorter).  The direction is derived from the current servo
-    position, so no manual direction parameter is needed.
+    BIT15 of the target position word is set automatically when two conditions
+    are both true: the raw step value from ``rad_to_step`` exceeds 4095
+    (indicating the trajectory has crossed the range boundary), and the shorter
+    arc from the current servo position to the wrapped target crosses the 0/4095
+    boundary. For all in-range moves BIT15 is never set, so direction is
+    determined solely by the target position as normal.
 
     When *move_time_ms* > 0 the servo uses time-based mode: it linearly
     interpolates from its current position to *pos_rad* over exactly
@@ -613,20 +615,23 @@ def st3215_send_move(
         move_time_ms: Duration for the move in milliseconds (0 = max speed).
         accel:        Acceleration ramp (0-254, unit 100 steps/s^2; 0 = no ramp).
     """
-    target_step = int(rad_to_step(pos_rad, cal, DEFAULT_STEP_PER_RAD)) % 4096
-    current_step = st3215_read_position_step(cal) & 0x7FFF  # mask direction bit
+    raw_step = int(rad_to_step(pos_rad, cal, DEFAULT_STEP_PER_RAD))
+    target_step = raw_step % 4096
 
-    forward = (target_step - current_step) % 4096
-    backward = (current_step - target_step) % 4096
-    if backward < forward:
-        target_step |= 0x8000  # BIT15: travel in negative direction through 0
+    if raw_step > 4095:
+        current_step = st3215_read_position_step(cal) & 0x7FFF
+        backward = (current_step - target_step) % 4096
+        forward = (target_step - current_step) % 4096
+        if backward < forward:
+            target_step |= 0x8000  # BIT15: cross the 0/4095 boundary
 
     accel_raw = int(np.clip(accel, 0, 254))
     time_raw = int(np.clip(move_time_ms, 0, 32767))
 
     print(
-        f"DEBUG: send_move -> target_step={target_step & 0x7FFF}, "
-        f"bit15={'set' if target_step & 0x8000 else 'clear'}, "
+        f"DEBUG: send_move -> raw_step={raw_step}, "
+        f"target_step={target_step & 0x7FFF}, "
+        f"cross_zero={'yes' if target_step & 0x8000 else 'no'}, "
         f"move_time_ms={move_time_ms}, accel_raw={accel_raw}"
     )
 
