@@ -1,10 +1,20 @@
+import os
 import time
 
+from dotenv import load_dotenv
+
 from constants import *
+from drivers.motor_rsbl120 import rsbl120_read_position_rad
+from drivers.motor_st3215 import st3215_read_position_rad
 from motion_calcs.motion_path import START_POSE
 from robot.motor_joints import JOINTS
 from robot_arm import *
 from setup import set_comms, deinit_comms
+
+# Environment variables load.
+load_dotenv()  # Load variables from .env.
+URDF_BASE_LINK = os.getenv("URDF_BASE_LINK", "base")
+URDF_PATH = os.getenv("URDF_PATH", "./urdf/robot.urdf")
 
 
 def confirm_keys(task: str | None = None):
@@ -22,10 +32,36 @@ def confirm_keys(task: str | None = None):
 
 
 def pre_run():
-    # Quick start pose.
-    for i, j in enumerate(JOINTS):
-        if j.comm is not None:
-            j.move(START_POSE.q_active[i], 3000)
+    confirm_keys("PRE")  # Developer type "yes" to continue.
+
+    # Starting positions.
+    initial = [
+        st3215_read_position_rad(JOINTS[0]),
+        rsbl120_read_position_rad(JOINTS[1]),
+        rsbl120_read_position_rad(JOINTS[2]),
+        rsbl120_read_position_rad(JOINTS[3]),
+        rsbl120_read_position_rad(JOINTS[4]),
+        st3215_read_position_rad(JOINTS[5]),
+    ]
+    q_frames = ik_path(
+        urdf_base_link=URDF_BASE_LINK,
+        urdf_path=URDF_PATH,
+        initial_joint_angles_active=initial,
+        targets_xyz=[START_POSE],
+        segment_plans=[],
+        dt=IK_DT_S,
+        min_segment_time=2.5,
+        step_m=0.01,
+        smooth_alpha=0.3,
+    )
+    execute_q_frames(
+        q_frames,
+        JOINTS,
+        dt=IK_DT_S,
+        move_time_ms=int(IK_DT_S * 1000),
+        settle_ms=50,
+    )
+
     time.sleep(3)
 
 
