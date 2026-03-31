@@ -522,6 +522,11 @@ def rsbl120_send_move(
         0x2C-0x2D  PWM open-loop    (2 bytes, written as 0 in position mode)
         0x2E-0x2F  Running speed    (2 bytes, 0 = servo max speed)
 
+    BIT15 of the target position word is set automatically when the shorter arc
+    to the target crosses the 0/4095 boundary (i.e. travelling in the negative
+    direction is shorter).  The direction is derived from the current servo
+    position, so no manual direction parameter is needed.
+
     The RSBL120 does not have a time-based interpolation mode (register 0x2C
     is PWM, not running-time).  The servo always moves at its own maximum
     speed.  *move_time_ms* is accepted to match the :class:`JointCal`
@@ -533,20 +538,24 @@ def rsbl120_send_move(
         move_time_ms: Unused; present for interface compatibility with
                       :func:`execute_q_frames`.
     """
-    pos_step = int(rad_to_step(pos_rad, cal, DEFAULT_STEP_PER_RAD)) % (4095 + 1)
+    target_step = int(rad_to_step(pos_rad, cal, DEFAULT_STEP_PER_RAD)) % 4096
+    current_step = rsbl120_read_position_step(cal) & 0x7FFF
 
-    print(f"DEBUG: send_move -> pos_step={pos_step}")
+    forward = (target_step - current_step) % 4096
+    backward = (current_step - target_step) % 4096
+    if backward < forward:
+        target_step |= 0x8000  # BIT15: travel in negative direction
 
     INSTR_WRITE = 0x03
     params = bytes(
         [
             ADDR_TARGET_POS,
-            pos_step & 0xFF,
-            (pos_step >> 8) & 0xFF,  # 0x2A-0x2B: target position
+            target_step & 0xFF,
+            (target_step >> 8) & 0xFF,
             0x00,
-            0x00,  # 0x2C-0x2D: PWM (unused)
+            0x00,  # PWM
             0x00,
-            0x00,  # 0x2E-0x2F: running speed (0 = servo max)
+            0x00,  # speed
         ]
     )
     packet = __build_packet(cal.servo_id, INSTR_WRITE, params)
