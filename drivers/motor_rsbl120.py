@@ -512,26 +512,30 @@ def rsbl120_zero_to_current_position(cal: JointCal) -> None:
 
 
 def rsbl120_send_move(
-    cal: JointCal, pos_rad: float, speed_rpm: float = 0.0
+    cal: JointCal, pos_rad: float, move_time_ms: int = 0
 ) -> None:
-    """Command the servo to move to *pos_rad* at up to *speed_rpm*.
+    """Command the servo to move to *pos_rad* at maximum speed.
 
     Writes six consecutive bytes starting at ``ADDR_TARGET_POS`` (0x2A)::
 
         0x2A-0x2B  Target position  (2 bytes, little-endian)
         0x2C-0x2D  PWM open-loop    (2 bytes, written as 0 in position mode)
-        0x2E-0x2F  Running speed    (2 bytes, unit 0.732 RPM; 0 = servo max)
+        0x2E-0x2F  Running speed    (2 bytes, 0 = servo max speed)
+
+    The RSBL120 does not have a time-based interpolation mode (register 0x2C
+    is PWM, not running-time).  The servo always moves at its own maximum
+    speed.  *move_time_ms* is accepted to match the :class:`JointCal`
+    ``move_func`` signature but is not used.
 
     Args:
-        cal:       :class:`JointCal` for the target servo.
-        pos_rad:   Desired position in radians.
-        speed_rpm: Maximum movement speed in RPM (0 = servo's own maximum).
-                   Resolution is 0.732 RPM per LSB.
+        cal:          :class:`JointCal` for the target servo.
+        pos_rad:      Desired position in radians.
+        move_time_ms: Unused; present for interface compatibility with
+                      :func:`execute_q_frames`.
     """
     pos_step = int(rad_to_step(pos_rad, cal, DEFAULT_STEP_PER_RAD)) & 0xFFFF
-    speed_raw = int(np.clip(speed_rpm / 0.732, 0, 32767))
 
-    print(f"DEBUG: send_move -> pos_step={pos_step}, speed_raw={speed_raw}")
+    print(f"DEBUG: send_move -> pos_step={pos_step}")
 
     INSTR_WRITE = 0x03
     params = bytes(
@@ -541,8 +545,8 @@ def rsbl120_send_move(
             (pos_step >> 8) & 0xFF,  # 0x2A-0x2B: target position
             0x00,
             0x00,  # 0x2C-0x2D: PWM (unused)
-            speed_raw & 0xFF,
-            (speed_raw >> 8) & 0xFF,  # 0x2E-0x2F: running speed
+            0x00,
+            0x00,  # 0x2E-0x2F: running speed (0 = servo max)
         ]
     )
     packet = __build_packet(cal.servo_id, INSTR_WRITE, params)

@@ -23,11 +23,14 @@ STS3215 hardware notes (from STS3215 memory table V3.6):
       turn count).
     - Running speed register unit is steps/s; 50 steps/s == 0.732 RPM.
     - No-load speed: ~3400 steps/s (49.8 RPM) at 7.4 V.
+    - Running time register unit is milliseconds (1 ms per LSB).
+      Write 0 for speed-based control; write N (ms) for time-based control where
+      the servo linearly interpolates to the target over N milliseconds.
     - send_move writes seven bytes from ADDR_ACCELERATION (0x29):
         0x29        acceleration (1 byte)
         0x2A-0x2B   target position (2 bytes)
-        0x2C-0x2D   running time   (2 bytes, write 0 for speed-based control)
-        0x2E-0x2F   running speed  (2 bytes, unit steps/s)
+        0x2C-0x2D   running time   (2 bytes, unit 1 ms; 0 = speed-based)
+        0x2E-0x2F   running speed  (2 bytes, unit steps/s; ignored in time mode)
 """
 
 import time
@@ -67,7 +70,7 @@ ADDR_TARGET_POS = (
     0x2A  # Target position        (2 bytes, -32766-32766; BIT15 = direction)
 )
 ADDR_RUNNING_TIME = (
-    0x2C  # Running time           (2 bytes; write 0 for speed-based control)
+    0x2C  # Running time           (2 bytes, unit 1 ms; 0 = speed-based control)
 )
 ADDR_RUNNING_SPEED = (
     0x2E  # Running speed          (2 bytes, unit steps/s; 0 = max speed)
@@ -578,35 +581,40 @@ def st3215_zero_to_current_position(cal: JointCal) -> None:
 def st3215_send_move(
     cal: JointCal,
     pos_rad: float,
-    speed_rpm: float = 0.0,
+    move_time_ms: int = 0,
     accel: int = 0,
 ) -> None:
-    """Command the servo to move to *pos_rad* at up to *speed_rpm*.
+    """Command the servo to move to *pos_rad*.
 
     Writes seven consecutive bytes starting at ``ADDR_ACCELERATION`` (0x29)::
 
         0x29        Acceleration   (1 byte,  unit 100 steps/s^2; 0 = no ramp)
         0x2A-0x2B   Target position (2 bytes, little-endian)
-        0x2C-0x2D   Running time    (2 bytes, written as 0 for speed-based control)
+        0x2C-0x2D   Running time    (2 bytes, ms; 0 = speed-based, >0 = time-based)
         0x2E-0x2F   Running speed   (2 bytes, unit steps/s; 0 = servo max speed)
 
-    Speed conversion: the STS3215 speed register is in steps/s.
-    50 steps/s == 0.732 RPM, so ``speed_raw = speed_rpm * 50 / 0.732``.
+    When *move_time_ms* > 0 the servo uses time-based mode: it linearly
+    interpolates from its current position to *pos_rad* over exactly
+    *move_time_ms* milliseconds, ignoring the speed register.  This is the
+    correct mode for trajectory following because each frame command is
+    guaranteed to complete in the allotted frame time.
+
+    When *move_time_ms* == 0 the servo uses speed-based mode at its own
+    maximum speed (running_speed = 0).
 
     Args:
-        cal:       :class:`JointCal` for the target servo.
-        pos_rad:   Desired position in radians.
-        speed_rpm: Maximum movement speed in RPM (0 = servo's own maximum).
-        accel:     Acceleration ramp (0-254, unit 100 steps/s^2; 0 = no ramp).
+        cal:          :class:`JointCal` for the target servo.
+        pos_rad:      Desired position in radians.
+        move_time_ms: Duration for the move in milliseconds (0 = max speed).
+        accel:        Acceleration ramp (0-254, unit 100 steps/s^2; 0 = no ramp).
     """
     pos_step = int(rad_to_step(pos_rad, cal, DEFAULT_STEP_PER_RAD)) & 0xFFFF
-    # Convert RPM -> steps/s (50 steps/s == 0.732 RPM)
-    speed_raw = int(np.clip(speed_rpm * _STEPS_PER_RPM, 0, 32767))
     accel_raw = int(np.clip(accel, 0, 254))
+    time_raw = int(np.clip(move_time_ms, 0, 32767))
 
     print(
         f"DEBUG: send_move -> pos_step={pos_step}, "
-        f"speed_raw={speed_raw}, accel_raw={accel_raw}"
+        f"move_time_ms={move_time_ms}, accel_raw={accel_raw}"
     )
 
     INSTR_WRITE = 0x03
@@ -616,10 +624,11 @@ def st3215_send_move(
             accel_raw,  # 0x29: acceleration
             pos_step & 0xFF,
             (pos_step >> 8) & 0xFF,  # 0x2A-0x2B: target position
+            time_raw & 0xFF,
+            (time_raw >> 8)
+            & 0xFF,  # 0x2C-0x2D: running time (ms; 0 = speed-based)
             0x00,
-            0x00,  # 0x2C-0x2D: running time (unused)
-            speed_raw & 0xFF,
-            (speed_raw >> 8) & 0xFF,  # 0x2E-0x2F: running speed
+            0x00,  # 0x2E-0x2F: running speed (0 = max; ignored in time mode)
         ]
     )
     packet = __build_packet(cal.servo_id, INSTR_WRITE, params)
