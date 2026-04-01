@@ -8,8 +8,8 @@ from robot_arm import *
 
 # Environment variables load.
 load_dotenv()  # Load variables from .env.
-URDF_BASE_LINK = f'.{os.getenv("URDF_BASE_LINK", "base")}'
-URDF_PATH = os.getenv("URDF_PATH", "./urdf/robot.urdf")
+URDF_BASE_LINK = os.getenv("URDF_BASE_LINK", "base")
+URDF_PATH = f'.{os.getenv("URDF_PATH", "./urdf/robot.urdf")}'  # Match main.py.
 
 
 def confirm_keys(task: str | None = None):
