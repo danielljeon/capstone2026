@@ -37,11 +37,12 @@ vertical_up_segment = SegmentPlan(
 )
 
 START_POSE = JointPose([0, 0.85, 0, 0, -0.85, 0])
+OPTIMAL_POSE = JointPose([0.52, 0, 2.97, -0.17, 0, 0])
 
 # Targets in meters.
 MOVE_1_TARGETS = [
     START_POSE,
-    JointPose([0.52, 0, 2.97, -0.17, 0, 0]),
+    OPTIMAL_POSE,
     [-0.2, 0.3, 0.15],
     [-0.18, 0.3, 0.15],
     [-0.18, 0.3, 0.0],
