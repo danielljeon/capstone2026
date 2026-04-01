@@ -1,4 +1,14 @@
+import os
+
+from dotenv import load_dotenv
+
 from robot_arm import SegmentPlan, JointPose
+
+# Environment variables load.
+load_dotenv()  # Load variables from .env.
+URDF_BASE_LINK = os.getenv("URDF_BASE_LINK", "base")
+URDF_PATH = os.getenv("URDF_PATH", "./urdf/robot.urdf")
+
 
 # Example segment plans.
 horizontal_punch_segment = SegmentPlan(
@@ -29,7 +39,7 @@ vertical_up_segment = SegmentPlan(
 START_POSE = JointPose([0, 1.05, 0, 0, -1.05, 0])
 
 # Targets in meters.
-targets = [
+MOVE_1_TARGETS = [
     START_POSE,
     JointPose([0.52, 0, 2.97, -0.17, 0, 0]),
     [-0.2, 0.3, 0.15],
@@ -39,7 +49,7 @@ targets = [
 ]
 
 # One plan per segment between targets (len(targets)-1).
-plans = [
+MOVE_1_PLANS = [
     # SegmentPlan(mode="free"),
     None,
     None,
