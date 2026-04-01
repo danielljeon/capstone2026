@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 
 from constants import IK_DT_S
-from motion_path import targets, plans
+from motion_path import MOVE_1_TARGETS, MOVE_1_PLANS
 from robot_arm import *
 
 # Environment variables load.
@@ -37,8 +37,8 @@ if __name__ == "__main__":
             initial_joint_angles_active=urdf_joint_angles_active(
                 URDF_BASE_LINK, URDF_PATH
             ),
-            targets_xyz=targets,
-            segment_plans=plans,
+            targets_xyz=MOVE_1_TARGETS,
+            segment_plans=MOVE_1_PLANS,
             dt=IK_DT_S,
             min_segment_time=2.5,
             step_m=0.01,
@@ -54,7 +54,7 @@ if __name__ == "__main__":
             urdf_base_link=URDF_BASE_LINK,
             urdf_path=URDF_PATH,
             q_frames=q_frames,
-            targets_xyz=targets,
+            targets_xyz=MOVE_1_TARGETS,
             dt=IK_DT_S,
         )
 
