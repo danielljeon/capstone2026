@@ -47,13 +47,27 @@ def pre_run():
         urdf_base_link=URDF_BASE_LINK,
         urdf_path=URDF_PATH,
         initial_joint_angles_active=initial,
-        targets_xyz=[START_POSE],
-        segment_plans=[],
+        targets_xyz=[
+            START_POSE,
+            JointPose(urdf_joint_angles_active(URDF_BASE_LINK, URDF_PATH)),
+        ],
+        segment_plans=[None],
         dt=IK_DT_S,
         min_segment_time=2.5,
         step_m=0.01,
         smooth_alpha=0.3,
     )
+    # # Animate.
+    # viser_animate_q(
+    #     urdf_base_link=URDF_BASE_LINK,
+    #     urdf_path=URDF_PATH,
+    #     q_frames=q_frames,
+    #     targets_xyz=[
+    #         START_POSE,
+    #         JointPose(urdf_joint_angles_active(URDF_BASE_LINK, URDF_PATH)),
+    #     ],
+    #     dt=IK_DT_S,
+    # )
     execute_q_frames(
         q_frames,
         JOINTS,
@@ -68,7 +82,7 @@ def pre_run():
 def run():
     confirm_keys("RUN")  # Developer type "yes" to continue.
 
-    q_frames = load_q_frames_csv("motion_calcs/motion_20260401_135115.csv")
+    q_frames = load_q_frames_csv("motion_calcs/motion_20260401_151353.csv")
     execute_q_frames(
         q_frames,
         JOINTS,
