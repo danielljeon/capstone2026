@@ -547,6 +547,7 @@ def rsbl120_send_move(
         move_time_ms: Unused; present for interface compatibility with
                       :func:`execute_q_frames`.
     """
+    pos_rad = float(np.clip(pos_rad, cal.rad_min, cal.rad_max))
     pos_step = int(rad_to_step(pos_rad, cal, DEFAULT_STEP_PER_RAD)) & 0xFFFF
 
     print(f"DEBUG: send_move -> pos_step={pos_step}")
