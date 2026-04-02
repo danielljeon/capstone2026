@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from constants import *
 from drivers.motor_rsbl120 import rsbl120_read_position_rad
 from drivers.motor_st3215 import st3215_read_position_rad
-from motion_calcs.motion_path import OPTIMAL_POSE
+from motion_calcs.motion_path import START_POSE, OPTIMAL_POSE
 from robot.motor_joints import JOINTS
 from robot_arm import *
 from setup import set_comms, deinit_comms
@@ -40,49 +40,37 @@ zero_90_offset_pose = JointPose(zero_90_offset)
 def pre_run():
     confirm_keys("PRE")  # Developer type "yes" to continue.
 
-    # # Starting positions.
-    # initial = [
-    #     st3215_read_position_rad(JOINTS[0]),
-    #     rsbl120_read_position_rad(JOINTS[1]),
-    #     rsbl120_read_position_rad(JOINTS[2]),
-    #     rsbl120_read_position_rad(JOINTS[3]),
-    #     rsbl120_read_position_rad(JOINTS[4]),
-    #     st3215_read_position_rad(JOINTS[5]),
-    # ]
-    # q_frames = ik_path(
-    #     urdf_base_link=URDF_BASE_LINK,
-    #     urdf_path=URDF_PATH,
-    #     initial_joint_angles_active=initial,
-    #     targets_xyz=[
-    #         START_POSE,
-    #         JointPose(urdf_joint_angles_active(URDF_BASE_LINK, URDF_PATH)),
-    #         OPTIMAL_POSE,
-    #     ],
-    #     segment_plans=[None, None],
-    #     dt=IK_DT_S,
-    #     min_segment_time=2.5,
-    #     step_m=0.01,
-    #     smooth_alpha=0.3,
-    # )
-    # # # Animate.
-    # # viser_animate_q(
-    # #     urdf_base_link=URDF_BASE_LINK,
-    # #     urdf_path=URDF_PATH,
-    # #     q_frames=q_frames,
-    # #     targets_xyz=[
-    # #         START_POSE,
-    # #         JointPose(urdf_joint_angles_active(URDF_BASE_LINK, URDF_PATH)),
-    # #         OPTIMAL_POSE,
-    # #     ],
-    # #     dt=IK_DT_S,
-    # # )
-    # execute_q_frames(
-    #     q_frames,
-    #     JOINTS,
-    #     dt=IK_DT_S,
-    #     move_time_ms=int(IK_DT_S * 1000),
-    #     settle_ms=50,
-    # )
+    # Starting positions.
+    initial = [
+        st3215_read_position_rad(JOINTS[0]),
+        rsbl120_read_position_rad(JOINTS[1]),
+        rsbl120_read_position_rad(JOINTS[2]),
+        rsbl120_read_position_rad(JOINTS[3]),
+        rsbl120_read_position_rad(JOINTS[4]),
+        st3215_read_position_rad(JOINTS[5]),
+    ]
+    q_frames = ik_path(
+        urdf_base_link=URDF_BASE_LINK,
+        urdf_path=URDF_PATH,
+        initial_joint_angles_active=initial,
+        targets_xyz=[
+            START_POSE,
+            JointPose(urdf_joint_angles_active(URDF_BASE_LINK, URDF_PATH)),
+            OPTIMAL_POSE,
+        ],
+        segment_plans=[None, None],
+        dt=IK_DT_S,
+        min_segment_time=2.5,
+        step_m=0.01,
+        smooth_alpha=0.3,
+    )
+    execute_q_frames(
+        q_frames,
+        JOINTS,
+        dt=IK_DT_S,
+        move_time_ms=int(IK_DT_S * 1000),
+        settle_ms=50,
+    )
 
     time.sleep(3)
 
@@ -93,9 +81,9 @@ def run():
     # while True: TODO
     t_tag_ee = np.array(
         [
-            [1, 0.0, 0.0, 0.0],
-            [0.0, 1, 0.0, 0.0],
-            [0.0, 0.0, 1, 0.05],
+            [1, 0, 0, 0.0],
+            [0, 1, 0, 0.0],
+            [0, 0, 1, 0.0],
             [0, 0, 0, 1],
         ]
     )
@@ -120,8 +108,7 @@ def run():
     q_frames = ik_path(
         urdf_base_link=URDF_BASE_LINK,
         urdf_path=URDF_PATH,
-        initial_joint_angles_active=OPTIMAL_POSE.q_active,
-        # initial_joint_angles_active=initial, # TODO
+        initial_joint_angles_active=initial,
         targets_xyz=[
             JointPose(initial),
             target_world.tolist(),
