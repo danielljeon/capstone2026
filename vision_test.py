@@ -76,14 +76,12 @@ def pre_run():
 
 
 def run():
-    confirm_keys("RUN")  # Developer type "yes" to continue.
-
     # while True: TODO
     t_tag_ee = np.array(
         [
-            [1, 0, 0, 0.0],
-            [0, 1, 0, 0.0],
-            [0, 0, 1, 0.0],
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 1, 0],
             [0, 0, 0, 1],
         ]
     )
@@ -119,25 +117,32 @@ def run():
         step_m=0.01,
         smooth_alpha=0.3,
     )
-    # Animate.
-    viser_animate_q(
-        urdf_base_link=URDF_BASE_LINK,
-        urdf_path=URDF_PATH,
-        q_frames=q_frames,
-        targets_xyz=[
-            JointPose(initial),
-            target_world.tolist(),
-        ],
+
+    confirm_keys("VISOR")  # Developer type "yes" to continue.
+    try:
+        # Animate.
+        viser_animate_q(
+            urdf_base_link=URDF_BASE_LINK,
+            urdf_path=URDF_PATH,
+            q_frames=q_frames,
+            targets_xyz=[
+                JointPose(initial),
+                target_world.tolist(),
+            ],
+            dt=IK_DT_S,
+        )
+    except KeyboardInterrupt:
+        print("Closing visor...")
+
+    confirm_keys("MOVE IK")  # Developer type "yes" to continue.
+    execute_q_frames(
+        q_frames,
+        JOINTS,
         dt=IK_DT_S,
+        move_time_ms=int(IK_DT_S * 1000),
+        settle_ms=50,
     )
-    # execute_q_frames(
-    #     q_frames,
-    #     JOINTS,
-    #     dt=IK_DT_S,
-    #     move_time_ms=int(IK_DT_S * 1000),
-    #     settle_ms=50,
-    # )
-    # time.sleep(5) TODO
+    time.sleep(5)
 
 
 if __name__ == "__main__":
