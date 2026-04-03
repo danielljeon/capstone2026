@@ -8,6 +8,11 @@ from constants import *
 from drivers.motor_rsbl120 import rsbl120_read_position_rad
 from drivers.motor_st3215 import st3215_read_position_rad
 from motion_calcs.motion_path import START_POSE, OPTIMAL_POSE
+from robot.end_effectors import (
+    EE1_TC,
+    EE2_TC,
+    lock_tool_changer,
+)
 from robot.motor_joints import JOINTS
 from robot_arm import *
 from setup import set_comms, deinit_comms
@@ -38,6 +43,11 @@ zero_90_offset_pose = JointPose(zero_90_offset)
 
 
 def pre_run():
+    confirm_keys("LOCK KEYS")  # Developer type "yes" to continue.
+
+    lock_tool_changer(EE1_TC)
+    lock_tool_changer(EE2_TC)
+
     confirm_keys("PRE")  # Developer type "yes" to continue.
 
     # Starting positions.
@@ -97,11 +107,13 @@ def run():
     ee_pos_world, r_ee_world = fk_ee(URDF_BASE_LINK, URDF_PATH, initial)
     target_world = ee_pos_world + r_ee_world @ t_tag_ee[:3, 3]
     tag_normal_world = r_ee_world @ t_tag_ee[:3, 2]  # Z column directly
+    target_rot_world = r_ee_world @ t_tag_ee[:3, :3]
     normal_to_target = SegmentPlan(
-        mode="fixed_vector",
-        vector=tag_normal_world.tolist(),
-        orientation_mode="Z",
+        mode="fixed_rotation",
+        vector=tag_normal_world.tolist(),  # Approach direction.
+        orientation_mode="full",
         target_orientation=tag_normal_world.tolist(),
+        target_rotation=target_rot_world.tolist(),
     )
     q_frames = ik_path(
         urdf_base_link=URDF_BASE_LINK,
