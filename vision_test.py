@@ -68,7 +68,7 @@ def pre_run():
             JointPose(urdf_joint_angles_active(URDF_BASE_LINK, URDF_PATH)),
             OPTIMAL_POSE,
         ],
-        segment_plans=[None, None],
+        segment_plans=[None, None, None],
         dt=IK_DT_S,
         min_segment_time=2.5,
         step_m=0.01,
@@ -104,26 +104,27 @@ def run():
         rsbl120_read_position_rad(JOINTS[4]),
         st3215_read_position_rad(JOINTS[5]),
     ]
-    ee_pos_world, r_ee_world = fk_ee(URDF_BASE_LINK, URDF_PATH, initial)
-    target_world = ee_pos_world + r_ee_world @ t_tag_ee[:3, 3]
+    ee_pos_world, r_ee_world = fk_ee(
+        URDF_BASE_LINK, URDF_PATH, OPTIMAL_POSE.q_active
+    )
+    targets = [(ee_pos_world + r_ee_world @ t_tag_ee[:3, 3]).tolist()]
     tag_normal_world = r_ee_world @ t_tag_ee[:3, 2]  # Z column directly
     target_rot_world = r_ee_world @ t_tag_ee[:3, :3]
-    normal_to_target = SegmentPlan(
-        mode="fixed_rotation",
-        vector=tag_normal_world.tolist(),  # Approach direction.
-        orientation_mode="full",
-        target_orientation=tag_normal_world.tolist(),
-        target_rotation=target_rot_world.tolist(),
-    )
+    segment_plans = [
+        SegmentPlan(
+            mode="fixed_rotation",
+            vector=tag_normal_world.tolist(),  # Approach direction.
+            orientation_mode="full",
+            target_orientation=tag_normal_world.tolist(),
+            target_rotation=target_rot_world.tolist(),
+        )
+    ]
     q_frames = ik_path(
         urdf_base_link=URDF_BASE_LINK,
         urdf_path=URDF_PATH,
         initial_joint_angles_active=initial,
-        targets_xyz=[
-            JointPose(initial),
-            target_world.tolist(),
-        ],
-        segment_plans=[normal_to_target],
+        targets_xyz=targets,
+        segment_plans=segment_plans,
         dt=IK_DT_S,
         min_segment_time=2.5,
         step_m=0.01,
@@ -137,10 +138,7 @@ def run():
             urdf_base_link=URDF_BASE_LINK,
             urdf_path=URDF_PATH,
             q_frames=q_frames,
-            targets_xyz=[
-                JointPose(initial),
-                target_world.tolist(),
-            ],
+            targets_xyz=targets,
             dt=IK_DT_S,
         )
     except KeyboardInterrupt:

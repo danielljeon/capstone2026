@@ -51,7 +51,7 @@ def pre_run():
             START_POSE,
             JointPose(urdf_joint_angles_active(URDF_BASE_LINK, URDF_PATH)),
         ],
-        segment_plans=[None],
+        segment_plans=[None, None],
         dt=IK_DT_S,
         min_segment_time=2.5,
         step_m=0.01,
