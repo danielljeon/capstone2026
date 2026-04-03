@@ -23,7 +23,7 @@ URDF_BASE_LINK = os.getenv("URDF_BASE_LINK", "base")
 URDF_PATH = os.getenv("URDF_PATH", "./urdf/robot.urdf")
 
 """IK calculation and execution frame time step (seconds)."""
-IK_DT_S = 0.02
+IK_DT_S = 0.01
 
 """URDF zero pose EE position and rotation matrix."""
 ZERO_POSE_EE_POS, ZERO_POSE_EE_R = fk_ee(
@@ -34,4 +34,4 @@ ZERO_POSE_EE_POS, ZERO_POSE_EE_R = fk_ee(
 START_POSE = JointPose([0, -0.85, 0, 0, -0.85, 0])
 
 """Nice camera and z-fold pose."""
-OPTIMAL_POSE = JointPose([0, 0, 0.17, 3.32, 0, 2.27])
+OPTIMAL_POSE = JointPose([0, 0, 0.17, 3.31, 0, 2.27])
