@@ -7,6 +7,7 @@ from robot.end_effectors import (
     EE1_TC,
     EE2_TC,
     lock_tool_changer,
+    release_tool_changer,
 )
 from robot.motor_joints import JOINTS
 from robot_arm import *
@@ -16,6 +17,11 @@ from setup import set_comms, deinit_comms
 load_dotenv()  # Load variables from .env.
 URDF_BASE_LINK = os.getenv("URDF_BASE_LINK", "base")
 URDF_PATH = os.getenv("URDF_PATH", "./urdf/robot.urdf")
+
+frames_csv_list = [
+    "motion_20260403_133253.csv",
+    "motion_20260403_133255.csv",
+]
 
 
 def confirm_keys(task: str | None = None):
@@ -77,14 +83,32 @@ def pre_run():
 def run():
     confirm_keys("RUN")  # Developer type "yes" to continue.
 
-    q_frames = load_q_frames_csv("motion_20260403_125849.csv")
+    release_tool_changer(EE2_TC)
+    time.sleep(1)
+
     execute_q_frames(
-        q_frames,
+        load_q_frames_csv(frames_csv_list[0]),
         JOINTS,
         dt=IK_DT_S,
         move_time_ms=int(IK_DT_S * 1000),
         settle_ms=50,
     )
+
+    time.sleep(1)
+    confirm_keys("LOCK AND CONTINUE")  # Developer type "yes" to continue.
+    lock_tool_changer(EE2_TC)
+    time.sleep(1)
+
+    execute_q_frames(
+        load_q_frames_csv(frames_csv_list[1]),
+        JOINTS,
+        dt=IK_DT_S,
+        move_time_ms=int(IK_DT_S * 1000),
+        settle_ms=50,
+    )
+
+    time.sleep(5)
+    release_tool_changer(EE2_TC)
 
 
 if __name__ == "__main__":

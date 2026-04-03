@@ -32,7 +32,8 @@ def ik_and_animate(
     targets_xyz: Iterable[Sequence[float] | JointPose],
     segment_plans: list[SegmentPlan | None] | None,
     dt: float,
-):
+    animate_viser: bool = True,
+) -> np.ndarray:
     # Calculate IK.
     q_frames = ik_path(
         urdf_base_link=URDF_BASE_LINK,
@@ -48,24 +49,34 @@ def ik_and_animate(
     p = save_q_frames_now_csv(q_frames)
     q_frames = load_q_frames_csv(p)
 
-    # Animate.
-    viser_animate_q(
-        urdf_base_link=URDF_BASE_LINK,
-        urdf_path=URDF_PATH,
-        q_frames=q_frames,
-        targets_xyz=MOVE_1_TARGETS,
-        dt=IK_DT_S,
-    )
+    if animate_viser:
+        try:
+            # Animate.
+            viser_animate_q(
+                urdf_base_link=URDF_BASE_LINK,
+                urdf_path=URDF_PATH,
+                q_frames=q_frames,
+                targets_xyz=MOVE_1_TARGETS,
+                dt=IK_DT_S,
+            )
+        except KeyboardInterrupt:
+            print("Closing visor...")
+
+    return q_frames
 
 
 if __name__ == "__main__":
-    INITIAL_Q = urdf_joint_angles_active(URDF_BASE_LINK, URDF_PATH)
+    MOVE_1_INITIAL_Q = urdf_joint_angles_active(URDF_BASE_LINK, URDF_PATH)
 
     # Targets in meters.
     MOVE_1_TARGETS = [
         OPTIMAL_POSE,
         [0.0, 0.35, ZERO_POSE_EE_POS[2] - 0.05],
-        [0.0, 0.35, ZERO_POSE_EE_POS[2] - 0.2],
+        [0.0, 0.35, ZERO_POSE_EE_POS[2] - 0.167],
+    ]
+
+    # Targets in meters.
+    MOVE_2_TARGETS = [
         [0.0, 0.35, ZERO_POSE_EE_POS[2] - 0.05],
         OPTIMAL_POSE,
     ]
@@ -96,16 +107,29 @@ if __name__ == "__main__":
         None,
         OPTIMAL_MOVE_SEGMENT_PLAN,
         OPTIMAL_MOVE_SEGMENT_PLAN,
+    ]
+
+    # One plan per segment between initial angles and each target.
+    MOVE_2_PLANS = [
         OPTIMAL_MOVE_SEGMENT_PLAN,
-        None,
+        OPTIMAL_MOVE_SEGMENT_PLAN,
     ]
 
     try:
-        ik_and_animate(
-            initial_q=INITIAL_Q,
+        q_frames = ik_and_animate(
+            initial_q=MOVE_1_INITIAL_Q,
             targets_xyz=MOVE_1_TARGETS,
             segment_plans=MOVE_1_PLANS,
             dt=IK_DT_S,
+            # animate_viser=False,
+        )
+        MOVE_2_INITIAL_Q = q_frames[-1]  # Use last q for next move IK calc.
+        ik_and_animate(
+            initial_q=MOVE_2_INITIAL_Q,
+            targets_xyz=MOVE_2_TARGETS,
+            segment_plans=MOVE_2_PLANS,
+            dt=IK_DT_S,
+            # animate_viser=False,
         )
 
     except KeyboardInterrupt:
