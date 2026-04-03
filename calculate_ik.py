@@ -1,11 +1,11 @@
 import os
+from typing import Iterable, Sequence
 
 import numpy as np
 from dotenv import load_dotenv
 
-from constants import IK_DT_S, START_POSE, OPTIMAL_POSE, ZERO_POSE_EE_POS
+from constants import IK_DT_S, OPTIMAL_POSE, ZERO_POSE_EE_POS
 from robot_arm import *
-from typing import Iterable, Sequence
 
 # Environment variables load.
 load_dotenv()  # Load variables from .env.
@@ -41,14 +41,12 @@ def ik_and_animate(
         targets_xyz=targets_xyz,
         segment_plans=segment_plans,
         dt=dt,
-        min_segment_time=2.5,
+        min_segment_time=4.0,
         step_m=0.01,
         smooth_alpha=0.3,
     )
     p = save_q_frames_now_csv(q_frames)
     q_frames = load_q_frames_csv(p)
-
-    confirm_keys("Animation")  # Developer type "yes" to continue.
 
     # Animate.
     viser_animate_q(
@@ -66,7 +64,10 @@ if __name__ == "__main__":
     # Targets in meters.
     MOVE_1_TARGETS = [
         OPTIMAL_POSE,
-        [0.0, 0.3, ZERO_POSE_EE_POS[2]],
+        [0.0, 0.35, ZERO_POSE_EE_POS[2] - 0.05],
+        [0.0, 0.35, ZERO_POSE_EE_POS[2] - 0.2],
+        [0.0, 0.35, ZERO_POSE_EE_POS[2] - 0.05],
+        OPTIMAL_POSE,
     ]
 
     t_tag_ee = np.array(
@@ -94,6 +95,9 @@ if __name__ == "__main__":
     MOVE_1_PLANS = [
         None,
         OPTIMAL_MOVE_SEGMENT_PLAN,
+        OPTIMAL_MOVE_SEGMENT_PLAN,
+        OPTIMAL_MOVE_SEGMENT_PLAN,
+        None,
     ]
 
     try:
