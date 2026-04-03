@@ -7,6 +7,11 @@ from constants import *
 from drivers.motor_rsbl120 import rsbl120_read_position_rad
 from drivers.motor_st3215 import st3215_read_position_rad
 from motion_calcs.motion_path import START_POSE
+from robot.end_effectors import (
+    EE1_TC,
+    EE2_TC,
+    lock_tool_changer,
+)
 from robot.motor_joints import JOINTS
 from robot_arm import *
 from setup import set_comms, deinit_comms
@@ -32,6 +37,11 @@ def confirm_keys(task: str | None = None):
 
 
 def pre_run():
+    confirm_keys("LOCK KEYS")  # Developer type "yes" to continue.
+
+    lock_tool_changer(EE1_TC)
+    lock_tool_changer(EE2_TC)
+
     confirm_keys("PRE")  # Developer type "yes" to continue.
 
     # Starting positions.
@@ -57,24 +67,24 @@ def pre_run():
         step_m=0.01,
         smooth_alpha=0.3,
     )
-    # # Animate.
-    # viser_animate_q(
-    #     urdf_base_link=URDF_BASE_LINK,
-    #     urdf_path=URDF_PATH,
-    #     q_frames=q_frames,
-    #     targets_xyz=[
-    #         START_POSE,
-    #         JointPose(urdf_joint_angles_active(URDF_BASE_LINK, URDF_PATH)),
-    #     ],
-    #     dt=IK_DT_S,
-    # )
-    execute_q_frames(
-        q_frames,
-        JOINTS,
+    # Animate.
+    viser_animate_q(
+        urdf_base_link=URDF_BASE_LINK,
+        urdf_path=URDF_PATH,
+        q_frames=q_frames,
+        targets_xyz=[
+            START_POSE,
+            JointPose(urdf_joint_angles_active(URDF_BASE_LINK, URDF_PATH)),
+        ],
         dt=IK_DT_S,
-        move_time_ms=int(IK_DT_S * 1000),
-        settle_ms=50,
     )
+    # execute_q_frames(
+    #     q_frames,
+    #     JOINTS,
+    #     dt=IK_DT_S,
+    #     move_time_ms=int(IK_DT_S * 1000),
+    #     settle_ms=50,
+    # )
 
     time.sleep(3)
 
