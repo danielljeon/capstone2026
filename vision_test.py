@@ -1,3 +1,8 @@
+"""Vision test script.
+
+>>> python ./vision_test.py --virtual
+"""
+
 import os
 import sys
 import time
@@ -48,6 +53,12 @@ def pre_run(run_virtual: bool = False):
     confirm_keys("PRE")  # Developer type "yes" to continue.
 
     # Starting positions.
+    targets = [
+        START_POSE,
+        JointPose(urdf_joint_angles_active(URDF_BASE_LINK, URDF_PATH)),
+        OPTIMAL_POSE,
+    ]
+
     if run_virtual:
         initial = urdf_joint_angles_active(URDF_BASE_LINK, URDF_PATH)
     else:
@@ -59,22 +70,29 @@ def pre_run(run_virtual: bool = False):
             rsbl120_read_position_rad(JOINTS[4]),
             st3215_read_position_rad(JOINTS[5]),
         ]
+
     q_frames = ik_path(
         urdf_base_link=URDF_BASE_LINK,
         urdf_path=URDF_PATH,
         initial_joint_angles_active=initial,
-        targets_xyz=[
-            START_POSE,
-            JointPose(urdf_joint_angles_active(URDF_BASE_LINK, URDF_PATH)),
-            OPTIMAL_POSE,
-        ],
+        targets_xyz=targets,
         segment_plans=[None, None, None],
         dt=IK_DT_S,
         min_segment_time=2.5,
         step_m=0.01,
         smooth_alpha=0.3,
     )
-    if not run_virtual:
+
+    if run_virtual:
+        # Animate.
+        viser_animate_q(
+            urdf_base_link=URDF_BASE_LINK,
+            urdf_path=URDF_PATH,
+            q_frames=q_frames,
+            targets_xyz=targets,
+            dt=IK_DT_S,
+        )
+    else:
         execute_q_frames(
             q_frames,
             JOINTS,
