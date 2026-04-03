@@ -1,12 +1,8 @@
-import os
 import time
-
-from dotenv import load_dotenv
 
 from constants import *
 from drivers.motor_rsbl120 import rsbl120_read_position_rad
 from drivers.motor_st3215 import st3215_read_position_rad
-from motion_calcs.motion_path import START_POSE
 from robot.end_effectors import (
     EE1_TC,
     EE2_TC,
@@ -67,24 +63,13 @@ def pre_run():
         step_m=0.01,
         smooth_alpha=0.3,
     )
-    # Animate.
-    viser_animate_q(
-        urdf_base_link=URDF_BASE_LINK,
-        urdf_path=URDF_PATH,
-        q_frames=q_frames,
-        targets_xyz=[
-            START_POSE,
-            JointPose(urdf_joint_angles_active(URDF_BASE_LINK, URDF_PATH)),
-        ],
+    execute_q_frames(
+        q_frames,
+        JOINTS,
         dt=IK_DT_S,
+        move_time_ms=int(IK_DT_S * 1000),
+        settle_ms=50,
     )
-    # execute_q_frames(
-    #     q_frames,
-    #     JOINTS,
-    #     dt=IK_DT_S,
-    #     move_time_ms=int(IK_DT_S * 1000),
-    #     settle_ms=50,
-    # )
 
     time.sleep(3)
 
@@ -92,7 +77,7 @@ def pre_run():
 def run():
     confirm_keys("RUN")  # Developer type "yes" to continue.
 
-    q_frames = load_q_frames_csv("motion_calcs/motion_20260401_151353.csv")
+    q_frames = load_q_frames_csv("motion_20260403_125849.csv")
     execute_q_frames(
         q_frames,
         JOINTS,
