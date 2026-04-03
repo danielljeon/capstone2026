@@ -68,20 +68,19 @@ def ik_and_animate(
 if __name__ == "__main__":
     MOVE_1_INITIAL_Q = urdf_joint_angles_active(URDF_BASE_LINK, URDF_PATH)
 
-    # Targets in meters.
-    MOVE_1_TARGETS = [
-        OPTIMAL_POSE,
-        [0.0, 0.35, ZERO_POSE_EE_POS[2] - 0.05],
-        [0.0, 0.35, ZERO_POSE_EE_POS[2] - 0.167],
-    ]
+    T_TOOL = np.array(
+        [
+            [1, 0, 0, 0],
+            [0, 1, 0, 0.35],
+            [0, 0, 1, ZERO_POSE_EE_POS[2] - 0.167],
+            [0, 0, 0, 1],
+        ]
+    )
+    TOOL_POSITION = np.asarray(T_TOOL[:3, 3], dtype=float)
+    TOOL_ORIENTATION = np.asarray(T_TOOL[:3, :3], dtype=float)
+    TOOL_ABOVE_OFFSET = 0.16
 
-    # Targets in meters.
-    MOVE_2_TARGETS = [
-        [0.0, 0.35, ZERO_POSE_EE_POS[2] - 0.05],
-        OPTIMAL_POSE,
-    ]
-
-    t_tag_ee = np.array(
+    t_tool_error = np.array(
         [
             [1, 0, 0, 0],
             [0, 1, 0, 0],
@@ -89,11 +88,30 @@ if __name__ == "__main__":
             [0, 0, 0, 1],
         ]
     )
-    ee_pos_world, r_ee_world = fk_ee(
-        URDF_BASE_LINK, URDF_PATH, MOVE_1_TARGETS[0].q_active
-    )
-    tag_normal_world = r_ee_world @ t_tag_ee[:3, 2]  # Z column directly
-    target_rot_world = r_ee_world @ t_tag_ee[:3, :3]
+
+    target_down = (
+        TOOL_POSITION + TOOL_ORIENTATION @ t_tool_error[:3, 3]
+    ).tolist()
+    target_up = target_down.copy()
+    target_up[2] += TOOL_ABOVE_OFFSET
+
+    # Targets in meters.
+    MOVE_1_TARGETS = [
+        OPTIMAL_POSE,
+        target_up,
+        TOOL_POSITION,
+        target_down,
+    ]
+
+    # Targets in meters.
+    MOVE_2_TARGETS = [
+        target_up,
+        OPTIMAL_POSE,
+    ]
+
+    _, r_ee_world = fk_ee(URDF_BASE_LINK, URDF_PATH, MOVE_1_TARGETS[0].q_active)
+    tag_normal_world = r_ee_world @ T_TOOL[:3, 2]  # Z column directly
+    target_rot_world = r_ee_world @ T_TOOL[:3, :3]
     OPTIMAL_MOVE_SEGMENT_PLAN = SegmentPlan(
         mode="fixed_rotation",
         vector=tag_normal_world.tolist(),
@@ -105,6 +123,7 @@ if __name__ == "__main__":
     # One plan per segment between initial angles and each target.
     MOVE_1_PLANS = [
         None,
+        OPTIMAL_MOVE_SEGMENT_PLAN,
         OPTIMAL_MOVE_SEGMENT_PLAN,
         OPTIMAL_MOVE_SEGMENT_PLAN,
     ]
