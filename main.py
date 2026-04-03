@@ -19,8 +19,9 @@ URDF_BASE_LINK = os.getenv("URDF_BASE_LINK", "base")
 URDF_PATH = os.getenv("URDF_PATH", "./urdf/robot.urdf")
 
 frames_csv_list = [
-    "motion_20260403_133253.csv",
-    "motion_20260403_133255.csv",
+    "motion_20260403_170208.csv",
+    "motion_20260403_170211.csv",
+    "motion_20260403_170212.csv",
 ]
 
 
@@ -82,10 +83,8 @@ def pre_run():
 
 def run():
     confirm_keys("RUN")  # Developer type "yes" to continue.
-
     release_tool_changer(EE2_TC)
     time.sleep(1)
-
     execute_q_frames(
         load_q_frames_csv(frames_csv_list[0]),
         JOINTS,
@@ -94,11 +93,7 @@ def run():
         settle_ms=50,
     )
 
-    time.sleep(1)
-    confirm_keys("LOCK AND CONTINUE")  # Developer type "yes" to continue.
-    lock_tool_changer(EE2_TC)
-    time.sleep(1)
-
+    confirm_keys("CALIBRATE THEN CONTINUE")  # Developer type "yes" to continue.
     execute_q_frames(
         load_q_frames_csv(frames_csv_list[1]),
         JOINTS,
@@ -107,7 +102,18 @@ def run():
         settle_ms=50,
     )
 
-    time.sleep(5)
+    confirm_keys("LOCK TOOL AND CONTINUE")  # Developer type "yes" to continue.
+    lock_tool_changer(EE2_TC)
+    time.sleep(1)
+    execute_q_frames(
+        load_q_frames_csv(frames_csv_list[2]),
+        JOINTS,
+        dt=IK_DT_S,
+        move_time_ms=int(IK_DT_S * 1000),
+        settle_ms=50,
+    )
+
+    confirm_keys("RELEASE TOOL")  # Developer type "yes" to continue.
     release_tool_changer(EE2_TC)
 
 

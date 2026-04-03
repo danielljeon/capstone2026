@@ -98,12 +98,16 @@ if __name__ == "__main__":
     # Targets in meters.
     MOVE_1_TARGETS = [
         OPTIMAL_POSE,
+    ]
+
+    # Targets in meters.
+    MOVE_2_TARGETS = [
         target_up,
         target_down,
     ]
 
     # Targets in meters.
-    MOVE_2_TARGETS = [
+    MOVE_3_TARGETS = [
         target_up,
         OPTIMAL_POSE,
     ]
@@ -120,14 +124,16 @@ if __name__ == "__main__":
     )
 
     # One plan per segment between initial angles and each target.
-    MOVE_1_PLANS = [
-        None,
+    MOVE_1_PLANS = [None]
+
+    # One plan per segment between initial angles and each target.
+    MOVE_2_PLANS = [
         OPTIMAL_MOVE_SEGMENT_PLAN,
         OPTIMAL_MOVE_SEGMENT_PLAN,
     ]
 
     # One plan per segment between initial angles and each target.
-    MOVE_2_PLANS = [
+    MOVE_3_PLANS = [
         OPTIMAL_MOVE_SEGMENT_PLAN,
         OPTIMAL_MOVE_SEGMENT_PLAN,
     ]
@@ -138,15 +144,23 @@ if __name__ == "__main__":
             targets_xyz=MOVE_1_TARGETS,
             segment_plans=MOVE_1_PLANS,
             dt=IK_DT_S,
-            # animate_viser=False,
+            animate_viser=False,
         )
         MOVE_2_INITIAL_Q = q_frames[-1]  # Use last q for next move IK calc.
-        ik_and_animate(
+        q_frames = ik_and_animate(
             initial_q=MOVE_2_INITIAL_Q,
             targets_xyz=MOVE_2_TARGETS,
             segment_plans=MOVE_2_PLANS,
             dt=IK_DT_S,
-            # animate_viser=False,
+            animate_viser=False,
+        )
+        MOVE_3_INITIAL_Q = q_frames[-1]  # Use last q for next move IK calc.
+        ik_and_animate(
+            initial_q=MOVE_3_INITIAL_Q,
+            targets_xyz=MOVE_3_TARGETS,
+            segment_plans=MOVE_3_PLANS,
+            dt=IK_DT_S,
+            animate_viser=False,
         )
 
     except KeyboardInterrupt:
