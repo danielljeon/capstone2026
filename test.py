@@ -1,6 +1,15 @@
+import os
 import time
 
+from dotenv import load_dotenv
+
+from drivers.motor_rsbl120 import (
+    DEFAULT_STEP_PER_RAD as RSBL120_DEFAULT_STEP_PER_RAD,
+)
 from drivers.motor_rsbl120 import rsbl120_read_position_step
+from drivers.motor_st3215 import (
+    DEFAULT_STEP_PER_RAD as ST3215_DEFAULT_STEP_PER_RAD,
+)
 from drivers.motor_st3215 import st3215_read_position_step
 from robot.end_effectors import (
     EE1_TC,
@@ -12,12 +21,57 @@ from robot.end_effectors import (
     run_tool_end,
 )
 from robot.motor_joints import JOINTS
-from robot_arm import JointCal
+from robot_arm import JointCal, fk_ee, step_to_rad
 from setup import set_comms, deinit_comms
+
+# Environment variables load.
+load_dotenv()  # Load variables from .env.
+URDF_BASE_LINK = os.getenv("URDF_BASE_LINK", "base")
+URDF_PATH = os.getenv("URDF_PATH", "./urdf/robot.urdf")
 
 CAN_BUS_TARGET = False  # TODO: Set to True and uncomment below.
 RSBL120_COMM_TARGET = False  # TODO: Set to True and uncomment below.
 ST3215_COMM_TARGET = False  # TODO: Set to True and uncomment below.
+
+
+def report_ee():
+    # Init and assign comms.
+    can_bus, rsbl120_comm, st3215_comm = set_comms(
+        can_bus_target=False,
+        rsbl120_comm_target=RSBL120_COMM_TARGET,
+        st3215_comm_target=ST3215_COMM_TARGET,
+    )
+
+    try:
+        q = []
+        for joint in JOINTS:
+            if joint.comm is not None:
+                if "rsbl120" in joint.name:
+                    q.append(
+                        step_to_rad(
+                            rsbl120_read_position_step(joint),
+                            joint,
+                            RSBL120_DEFAULT_STEP_PER_RAD,
+                        )
+                    )
+                elif "st3215" in joint.name:
+                    q.append(
+                        step_to_rad(
+                            st3215_read_position_step(joint),
+                            joint,
+                            ST3215_DEFAULT_STEP_PER_RAD,
+                        )
+                    )
+
+        if None not in q:
+            ee_pos, ee_rot = fk_ee(URDF_BASE_LINK, URDF_PATH, q_active=q)
+            print("EE Position:")
+            print(ee_pos)
+            print("EE Rotation:")
+            print(ee_rot)
+
+    finally:
+        deinit_comms(can_bus, rsbl120_comm, st3215_comm)
 
 
 def report_q():
@@ -83,5 +137,5 @@ def main():
 
 if __name__ == "__main__":
     report_q()
-    print()
-    main()
+    report_ee()
+    # main()
