@@ -10,6 +10,9 @@ URDF_BASE_LINK = os.getenv("URDF_BASE_LINK", "base")
 URDF_PATH = os.getenv("URDF_PATH", "./urdf/robot.urdf")
 
 
+START_POSE = JointPose([0, -0.85, 0, 0, -0.85, 0])
+OPTIMAL_POSE = JointPose([0, 0, 0.17, 3.32, 0, 2.27])
+
 # Example segment plans.
 horizontal_punch_segment = SegmentPlan(
     mode="fixed_vector",
@@ -35,9 +38,6 @@ vertical_up_segment = SegmentPlan(
     orientation_mode="Z",
     target_orientation=[0, 0, 1],
 )
-
-START_POSE = JointPose([0, 0.85, 0, 0, -0.85, 0])
-OPTIMAL_POSE = JointPose([0.52, 0, 2.97, -0.17, 0, 0])
 
 # Targets in meters.
 MOVE_1_TARGETS = [
