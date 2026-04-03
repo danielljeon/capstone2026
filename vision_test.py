@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 
 import numpy as np
@@ -37,28 +38,27 @@ def confirm_keys(task: str | None = None):
     print("Continuing...")
 
 
-zero_90_offset = urdf_joint_angles_active(URDF_BASE_LINK, URDF_PATH)
-zero_90_offset[0] = -1.57
-zero_90_offset_pose = JointPose(zero_90_offset)
-
-
-def pre_run():
+def pre_run(run_virtual: bool = False):
     confirm_keys("LOCK KEYS")  # Developer type "yes" to continue.
 
-    lock_tool_changer(EE1_TC)
-    lock_tool_changer(EE2_TC)
+    if not run_virtual:
+        lock_tool_changer(EE1_TC)
+        lock_tool_changer(EE2_TC)
 
     confirm_keys("PRE")  # Developer type "yes" to continue.
 
     # Starting positions.
-    initial = [
-        st3215_read_position_rad(JOINTS[0]),
-        rsbl120_read_position_rad(JOINTS[1]),
-        rsbl120_read_position_rad(JOINTS[2]),
-        rsbl120_read_position_rad(JOINTS[3]),
-        rsbl120_read_position_rad(JOINTS[4]),
-        st3215_read_position_rad(JOINTS[5]),
-    ]
+    if run_virtual:
+        initial = urdf_joint_angles_active(URDF_BASE_LINK, URDF_PATH)
+    else:
+        initial = [
+            st3215_read_position_rad(JOINTS[0]),
+            rsbl120_read_position_rad(JOINTS[1]),
+            rsbl120_read_position_rad(JOINTS[2]),
+            rsbl120_read_position_rad(JOINTS[3]),
+            rsbl120_read_position_rad(JOINTS[4]),
+            st3215_read_position_rad(JOINTS[5]),
+        ]
     q_frames = ik_path(
         urdf_base_link=URDF_BASE_LINK,
         urdf_path=URDF_PATH,
@@ -74,18 +74,18 @@ def pre_run():
         step_m=0.01,
         smooth_alpha=0.3,
     )
-    execute_q_frames(
-        q_frames,
-        JOINTS,
-        dt=IK_DT_S,
-        move_time_ms=int(IK_DT_S * 1000),
-        settle_ms=50,
-    )
+    if not run_virtual:
+        execute_q_frames(
+            q_frames,
+            JOINTS,
+            dt=IK_DT_S,
+            move_time_ms=int(IK_DT_S * 1000),
+            settle_ms=50,
+        )
+        time.sleep(3)
 
-    time.sleep(3)
 
-
-def run():
+def run(run_virtual: bool = False):
     # while True: TODO
     t_tag_ee = np.array(
         [
@@ -96,14 +96,19 @@ def run():
         ]
     )
     # Starting positions.
-    initial = [
-        st3215_read_position_rad(JOINTS[0]),
-        rsbl120_read_position_rad(JOINTS[1]),
-        rsbl120_read_position_rad(JOINTS[2]),
-        rsbl120_read_position_rad(JOINTS[3]),
-        rsbl120_read_position_rad(JOINTS[4]),
-        st3215_read_position_rad(JOINTS[5]),
-    ]
+    # Starting positions.
+    if run_virtual:
+        # TODO: Currently hardcoded to match last q of prerun().
+        initial = OPTIMAL_POSE.q_active
+    else:
+        initial = [
+            st3215_read_position_rad(JOINTS[0]),
+            rsbl120_read_position_rad(JOINTS[1]),
+            rsbl120_read_position_rad(JOINTS[2]),
+            rsbl120_read_position_rad(JOINTS[3]),
+            rsbl120_read_position_rad(JOINTS[4]),
+            st3215_read_position_rad(JOINTS[5]),
+        ]
     ee_pos_world, r_ee_world = fk_ee(
         URDF_BASE_LINK, URDF_PATH, OPTIMAL_POSE.q_active
     )
@@ -145,31 +150,43 @@ def run():
         print("Closing visor...")
 
     confirm_keys("MOVE IK")  # Developer type "yes" to continue.
-    execute_q_frames(
-        q_frames,
-        JOINTS,
-        dt=IK_DT_S,
-        move_time_ms=int(IK_DT_S * 1000),
-        settle_ms=50,
-    )
-    time.sleep(5)
+    if not run_virtual:
+        execute_q_frames(
+            q_frames,
+            JOINTS,
+            dt=IK_DT_S,
+            move_time_ms=int(IK_DT_S * 1000),
+            settle_ms=50,
+        )
+        time.sleep(5)
 
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] in ("-v", "--virtual"):
+        # Run CLI app
+        run_virtual = True
+    else:
+        run_virtual = False
+
     try:
         can_bus, rsbl120_comm, st3215_comm = None, None, None
 
         try:
-            # Init and assign comms.
-            can_bus, rsbl120_comm, st3215_comm = set_comms()
+            if not run_virtual:
+                # Init and assign comms.
+                can_bus, rsbl120_comm, st3215_comm = set_comms()
 
             # Initialize each joint.
             for joint in JOINTS:
                 if joint.comm is not None:
                     joint.init()
 
-            pre_run()  # Pre-run.
-            run()  # Run.
+            if run_virtual:
+                pre_run(run_virtual=True)  # Pre-run.
+                run(run_virtual=True)  # Run.
+            else:
+                pre_run(run_virtual=False)  # Pre-run.
+                run(run_virtual=False)  # Run.
 
         finally:
             # Deinitialize each joint.
