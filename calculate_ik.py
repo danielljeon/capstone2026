@@ -99,7 +99,6 @@ if __name__ == "__main__":
     MOVE_1_TARGETS = [
         OPTIMAL_POSE,
         target_up,
-        TOOL_POSITION,
         target_down,
     ]
 
@@ -123,7 +122,6 @@ if __name__ == "__main__":
     # One plan per segment between initial angles and each target.
     MOVE_1_PLANS = [
         None,
-        OPTIMAL_MOVE_SEGMENT_PLAN,
         OPTIMAL_MOVE_SEGMENT_PLAN,
         OPTIMAL_MOVE_SEGMENT_PLAN,
     ]
