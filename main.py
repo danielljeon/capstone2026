@@ -11,18 +11,12 @@ from robot.end_effectors import (
 )
 from robot.motor_joints import JOINTS
 from robot_arm import *
-from setup import set_comms, deinit_comms
+from setup import deinit_comms, set_comms, load_diff_from_file
 
 # Environment variables load.
 load_dotenv()  # Load variables from .env.
 URDF_BASE_LINK = os.getenv("URDF_BASE_LINK", "base")
 URDF_PATH = os.getenv("URDF_PATH", "./urdf/robot.urdf")
-
-frames_csv_list = [
-    "motion_20260403_170208.csv",
-    "motion_20260403_170211.csv",
-    "motion_20260403_170212.csv",
-]
 
 
 def confirm_keys(task: str | None = None):
@@ -81,37 +75,77 @@ def pre_run():
     time.sleep(3)
 
 
+def __go_to_optimal():
+    q_frames = ik_path(
+        urdf_base_link=URDF_BASE_LINK,
+        urdf_path=URDF_PATH,
+        initial_joint_angles_active=urdf_joint_angles_active(
+            URDF_BASE_LINK, URDF_PATH
+        ),
+        targets_xyz=[OPTIMAL_POSE],
+        segment_plans=[SegmentPlan("free")],
+        dt=IK_DT_S,
+        min_segment_time=4.0,
+        step_m=0.01,
+        smooth_alpha=0.3,
+    )
+    execute_q_frames(
+        q_frames,
+        JOINTS,
+        dt=IK_DT_S,
+        move_time_ms=int(IK_DT_S * 1000),
+        settle_ms=50,
+    )
+
+
 def run():
     confirm_keys("RUN")  # Developer type "yes" to continue.
     release_tool_changer(EE2_TC)
     time.sleep(1)
-    execute_q_frames(
-        load_q_frames_csv(frames_csv_list[0]),
-        JOINTS,
-        dt=IK_DT_S,
-        move_time_ms=int(IK_DT_S * 1000),
-        settle_ms=50,
-    )
+    __go_to_optimal()
 
     confirm_keys("CALIBRATE THEN CONTINUE")  # Developer type "yes" to continue.
+
+    diff = load_diff_from_file("diff.txt")
+    q_frames = ik_relative_from_q(
+        urdf_base_link=URDF_BASE_LINK,
+        urdf_path=URDF_PATH,
+        initial_q=OPTIMAL_POSE.q_active,
+        t_target=diff,
+        viser_animate=True,
+        animate=True,
+        dt=IK_DT_S,
+        min_segment_time=4.0,
+        step_m=0.01,
+        smooth_alpha=0.3,
+    )
     execute_q_frames(
-        load_q_frames_csv(frames_csv_list[1]),
+        q_frames,
         JOINTS,
         dt=IK_DT_S,
         move_time_ms=int(IK_DT_S * 1000),
         settle_ms=50,
     )
 
-    confirm_keys("LOCK TOOL AND CONTINUE")  # Developer type "yes" to continue.
-    lock_tool_changer(EE2_TC)
-    time.sleep(1)
-    execute_q_frames(
-        load_q_frames_csv(frames_csv_list[2]),
-        JOINTS,
-        dt=IK_DT_S,
-        move_time_ms=int(IK_DT_S * 1000),
-        settle_ms=50,
-    )
+    # confirm_keys("CALIBRATE THEN CONTINUE")  # Developer type "yes" to continue.
+    # execute_q_frames(
+    #     load_q_frames_csv(frames_csv_list[1]),
+    #     JOINTS,
+    #     dt=IK_DT_S,
+    #     move_time_ms=int(IK_DT_S * 1000),
+    #     settle_ms=50,
+    # )
+    #
+    # confirm_keys("LOCK TOOL AND CONTINUE")  # Developer type "yes" to continue.
+    # lock_tool_changer(EE2_TC)
+    # time.sleep(1)
+    # execute_q_frames(
+    #     load_q_frames_csv(frames_csv_list[2]),
+    #     JOINTS,
+    #     dt=IK_DT_S,
+    #     move_time_ms=int(IK_DT_S * 1000),
+    #     settle_ms=50,
+    # )
 
     confirm_keys("RELEASE TOOL")  # Developer type "yes" to continue.
     release_tool_changer(EE2_TC)

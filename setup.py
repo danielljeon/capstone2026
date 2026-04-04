@@ -1,4 +1,7 @@
+import re
+
 import can
+import numpy as np
 import serial
 
 from constants import *
@@ -66,3 +69,33 @@ def deinit_comms(
         rsbl120_close_comm(rsbl120_comm)
     if st3215_comm is not None:
         st3215_close_comm(st3215_comm)
+
+
+def load_diff_from_file(filepath: str) -> np.ndarray:
+    """Load a 4x4 matrix from a text file and return as numpy array.
+
+    Args:
+        filepath: Path to text file containing 4x4 matrix rows.
+
+    Examples:
+        ```
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1],
+        ```
+
+    Returns:
+        4x4 numpy array.
+    """
+    with open(filepath, "r") as f:
+        content = f.read()
+
+    # Extract all rows of the form [a, b, c, d]
+    rows = re.findall(r"\[([^\]]+)\]", content)
+    assert len(rows) == 4, f"Expected 4 rows, got {len(rows)}"
+
+    matrix = np.array([[float(x) for x in row.split(",")] for row in rows])
+    assert matrix.shape == (4, 4), f"Expected 4x4, got {matrix.shape}"
+
+    return matrix
