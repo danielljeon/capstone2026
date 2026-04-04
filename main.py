@@ -1,5 +1,7 @@
 import time
 
+import numpy as np
+
 from constants import *
 from drivers.motor_rsbl120 import rsbl120_read_position_rad
 from drivers.motor_st3215 import st3215_read_position_rad
@@ -72,8 +74,6 @@ def pre_run():
         settle_ms=50,
     )
 
-    time.sleep(3)
-
 
 def __go_to_optimal():
     q_frames = ik_path(
@@ -98,26 +98,27 @@ def __go_to_optimal():
     )
 
 
-def run():
-    confirm_keys("RUN")  # Developer type "yes" to continue.
-    release_tool_changer(EE2_TC)
-    time.sleep(1)
-    __go_to_optimal()
-
-    confirm_keys("CALIBRATE THEN CONTINUE")  # Developer type "yes" to continue.
-
+def __go_to_tool_stand_above():
+    offset = np.array(
+        [
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 1, 0.06],  # Z axis offset.
+            [0, 0, 0, 1],
+        ]
+    )
     diff = load_diff_from_file("diff.txt")
     q_frames = ik_relative_from_q(
         urdf_base_link=URDF_BASE_LINK,
         urdf_path=URDF_PATH,
         initial_q=OPTIMAL_POSE.q_active,
         t_target=diff,
-        viser_animate=True,
         animate=True,
         dt=IK_DT_S,
         min_segment_time=4.0,
         step_m=0.01,
         smooth_alpha=0.3,
+        offset=offset,
     )
     execute_q_frames(
         q_frames,
@@ -127,28 +128,19 @@ def run():
         settle_ms=50,
     )
 
-    # confirm_keys("CALIBRATE THEN CONTINUE")  # Developer type "yes" to continue.
-    # execute_q_frames(
-    #     load_q_frames_csv(frames_csv_list[1]),
-    #     JOINTS,
-    #     dt=IK_DT_S,
-    #     move_time_ms=int(IK_DT_S * 1000),
-    #     settle_ms=50,
-    # )
-    #
-    # confirm_keys("LOCK TOOL AND CONTINUE")  # Developer type "yes" to continue.
-    # lock_tool_changer(EE2_TC)
-    # time.sleep(1)
-    # execute_q_frames(
-    #     load_q_frames_csv(frames_csv_list[2]),
-    #     JOINTS,
-    #     dt=IK_DT_S,
-    #     move_time_ms=int(IK_DT_S * 1000),
-    #     settle_ms=50,
-    # )
 
-    confirm_keys("RELEASE TOOL")  # Developer type "yes" to continue.
+def run():
+    confirm_keys("RELEASE TOOL END")  # Developer type "yes" to continue.
     release_tool_changer(EE2_TC)
+
+    confirm_keys("GO TO OPTIMAL POSE")  # Developer type "yes" to continue.
+    __go_to_optimal()
+
+    confirm_keys("MOVE TO ABOVE TARGET")
+    __go_to_tool_stand_above()
+
+    confirm_keys("LOCK TOOL")
+    lock_tool_changer(EE2_TC)
 
 
 if __name__ == "__main__":
