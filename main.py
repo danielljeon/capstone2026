@@ -1,5 +1,3 @@
-import time
-
 import numpy as np
 
 from constants import *
@@ -99,11 +97,27 @@ def __go_to_optimal():
 
 
 def __go_to_tool_stand_above():
+    initial_q = [
+        st3215_read_position_rad(JOINTS[0]),
+        rsbl120_read_position_rad(JOINTS[1]),
+        rsbl120_read_position_rad(JOINTS[2]),
+        rsbl120_read_position_rad(JOINTS[3]),
+        rsbl120_read_position_rad(JOINTS[4]),
+        st3215_read_position_rad(JOINTS[5]),
+    ]
+    t_april_tag = np.array(
+        [
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 1, 0.06],
+            [0.0, 0.0, 0.0, 1.0],
+        ]
+    )  # TODO IMPLEMENT PROPERLY.
     offset = np.array(
         [
             [1, 0, 0, 0],
             [0, 1, 0, 0],
-            [0, 0, 1, 0.06],  # Z axis offset.
+            [0, 0, 1, 0.05],  # Z axis offset.
             [0, 0, 0, 1],
         ]
     )
@@ -111,7 +125,7 @@ def __go_to_tool_stand_above():
     q_frames = ik_relative_from_q(
         urdf_base_link=URDF_BASE_LINK,
         urdf_path=URDF_PATH,
-        initial_q=OPTIMAL_POSE.q_active,
+        initial_q=initial_q,
         t_target=diff,
         animate=True,
         dt=IK_DT_S,
