@@ -11,7 +11,7 @@ from robot.end_effectors import (
 )
 from robot.motor_joints import JOINTS
 from robot_arm import *
-from setup import deinit_comms, set_comms, load_diff_from_file
+from setup import deinit_comms, set_comms
 
 # Environment variables load.
 load_dotenv()  # Load variables from .env.
@@ -121,12 +121,11 @@ def __go_to_tool_stand_above():
             [0, 0, 0, 1],
         ]
     )
-    diff = load_diff_from_file("diff.txt")
     q_frames = ik_relative_from_q(
         urdf_base_link=URDF_BASE_LINK,
         urdf_path=URDF_PATH,
         initial_q=initial_q,
-        t_target=diff,
+        t_target=t_april_tag,
         animate=True,
         dt=IK_DT_S,
         min_segment_time=4.0,
