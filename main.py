@@ -186,7 +186,13 @@ def run():
     confirm_keys("GO TO OPTIMAL POSE")  # Developer type "yes" to continue.
     __go_to_optimal()
 
-    confirm_keys("MOVE TO ABOVE TARGET")
+    confirm_keys("MOVE TO ABOVE TARGET - 1 of 3")
+    __go_to_tool_stand_above()
+
+    confirm_keys("MOVE TO ABOVE TARGET - 2 of 3")
+    __go_to_tool_stand_above()
+
+    confirm_keys("MOVE TO ABOVE TARGET - 3 of 3")
     __go_to_tool_stand_above()
 
     confirm_keys("MOVE DOWN FIXED HEIGHT TO TARGET")
