@@ -110,7 +110,8 @@ def calibrate_zero(
             )
             time.sleep(0.05)
 
-    # Average rotation via mean of rotation matrices (close enough for small variance)
+    # Average rotation via mean of rotation matrices (close enough for small
+    # variance)
     R_mean = np.mean([T[:3, :3] for T in transforms], axis=0)
     # Re-orthogonalise via SVD
     U, _, Vt = np.linalg.svd(R_mean)
@@ -118,13 +119,13 @@ def calibrate_zero(
 
     t_mean = np.mean([T[:3, 3] for T in transforms], axis=0)
 
-    T_zero = np.eye(4)
-    T_zero[:3, :3] = R_ortho
-    T_zero[:3, 3] = t_mean
+    t_zero = np.eye(4)
+    t_zero[:3, :3] = R_ortho
+    t_zero[:3, 3] = t_mean
 
-    np.save(save_path, T_zero)
+    np.save(save_path, t_zero)
     print(f"Zero saved to {save_path}")
-    return T_zero
+    return t_zero
 
 
 def load_zero(path: Path = CALIBRATION_FILE) -> np.ndarray | None:
@@ -133,9 +134,36 @@ def load_zero(path: Path = CALIBRATION_FILE) -> np.ndarray | None:
     return None
 
 
-def apply_zero(T_current: np.ndarray, T_zero: np.ndarray) -> np.ndarray:
+def apply_zero(t_current: np.ndarray, t_zero: np.ndarray) -> np.ndarray:
     """
     Returns:
-        T_current expressed relative to T_zero: T_rel = T_zero_inv @ T_current
+        t_current expressed relative to t_zero: T_rel = t_zero_inv @ t_current
     """
-    return np.linalg.inv(T_zero) @ T_current
+    return np.linalg.inv(t_zero) @ t_current
+
+
+def detect_tag_zeroed_right_hand(
+    pipeline: rs.pipeline,
+    intrinsics: dict,
+    tag_id: int,
+    tag_size_m: float,
+    detector: Detector,
+) -> np.ndarray | None:
+    # Load zeroed calibration
+    t_zero = load_zero()
+    if t_zero is None:
+        raise RuntimeError(
+            "No zero calibration found. Run calibrate_zero() to set one."
+        )
+
+    # Get april tag
+    transform = detect_tag(pipeline, intrinsics, tag_id, tag_size_m, detector)
+
+    # Convert from left hand rule to right hand rule
+    if transform is not None:
+        transform[:3, 0] *= -1
+        t_zero_fixed = t_zero.copy()
+        t_zero_fixed[:3, 0] *= -1
+        transform = apply_zero(transform, t_zero_fixed)
+
+    return transform
