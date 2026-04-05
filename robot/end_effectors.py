@@ -1,11 +1,16 @@
+import csv
+import os
 import time
+from datetime import datetime
+
+import matplotlib.pyplot as plt
 
 from drivers.motor_pwm_node_constants import db
 from drivers.motor_pwm_node_hbridge import HBridge, hbridge_drive, hbridge_coast
 from drivers.motor_pwm_node_servo import (
     pwm_node_servo_send_move,
 )
-from robot_arm import *
+from robot_arm import JointCal
 
 EE1_TC = JointCal(
     name="ee1_tool_changer",
@@ -54,6 +59,7 @@ def run_tool_end(
     ignore_start_current: bool = False,
     start_current_time_s: float = 0.1,
     plot_playback: bool = False,
+    playback_csv_dir: str | None = None,
 ):
     times = []
     currents = []
@@ -92,9 +98,25 @@ def run_tool_end(
     finally:
         hbridge_coast(hbridge.bus, hbridge)
 
-    if plot_playback and times:
-        import matplotlib.pyplot as plt
+    if playback_csv_dir is not None and times:
+        limit_str = (
+            f"{int(current_limit)}mA"
+            if current_limit is not None
+            else "nolimit"
+        )
+        filename = (
+            f"tool_end_{limit_str}_"
+            f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        )
+        filepath = os.path.join(playback_csv_dir, filename)
 
+        with open(filepath, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["time_s", "current_mA", "current_limit_mA"])
+            for t, c in zip(times, currents):
+                writer.writerow([t, c, current_limit])
+
+    if plot_playback and times:
         plt.figure()
         plt.plot(times, currents, label="Current (mA)")
         plt.axhline(y=current_limit, color="r", linestyle="--", label="Limit")
