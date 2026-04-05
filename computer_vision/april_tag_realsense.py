@@ -142,7 +142,7 @@ def apply_zero(t_current: np.ndarray, t_zero: np.ndarray) -> np.ndarray:
     return np.linalg.inv(t_zero) @ t_current
 
 
-def detect_tag_zeroed_right_hand(
+def detect_tag_zeroed(
     pipeline: rs.pipeline,
     intrinsics: dict,
     tag_id: int,
@@ -159,11 +159,7 @@ def detect_tag_zeroed_right_hand(
     # Get april tag
     transform = detect_tag(pipeline, intrinsics, tag_id, tag_size_m, detector)
 
-    # Convert from left hand rule to right hand rule
     if transform is not None:
-        transform[:3, 0] *= -1
-        t_zero_fixed = t_zero.copy()
-        t_zero_fixed[:3, 0] *= -1
-        transform = apply_zero(transform, t_zero_fixed)
+        transform = apply_zero(transform, t_zero)
 
     return transform
