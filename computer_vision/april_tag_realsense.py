@@ -41,18 +41,16 @@ def detect_tag(
     tag_id: int,
     tag_size_m: float,
     detector: Detector,
-) -> np.ndarray | None:
-    """
-    Grab one frame and return the 4x4 camera-to-tag transform for the given
-    tag_id.
+) -> tuple[np.ndarray | None, np.ndarray | None, object | None]:
+    """Grab one frame and detect the given tag.
 
     Returns:
-        None if the tag is not detected.
+         (T_cam_tag, rgb_frame, detection), any element may be None.
     """
     frames = pipeline.wait_for_frames()
     color = frames.get_color_frame()
     if not color:
-        return None
+        return None, None, None
 
     img = np.asanyarray(color.get_data())
     gray = np.dot(img[..., :3], [0.299, 0.587, 0.114]).astype(np.uint8)
@@ -74,12 +72,12 @@ def detect_tag(
     for det in detections:
         if det.tag_id != tag_id:
             continue
-        T = np.eye(4)
-        T[:3, :3] = det.pose_R
-        T[:3, 3] = det.pose_t.flatten()
-        return T
+        transform = np.eye(4)
+        transform[:3, :3] = det.pose_R
+        transform[:3, 3] = det.pose_t.flatten()
+        return transform, img, det
 
-    return None
+    return None, img, None
 
 
 def calibrate_zero(
@@ -101,9 +99,11 @@ def calibrate_zero(
     transforms = []
 
     while len(transforms) < n_frames:
-        T = detect_tag(pipeline, intrinsics, tag_id, tag_size_m, detector)
-        if T is not None:
-            transforms.append(T)
+        transform, _, _ = detect_tag(
+            pipeline, intrinsics, tag_id, tag_size_m, detector
+        )
+        if transform is not None:
+            transforms.append(transform)
         else:
             print(
                 f"  Tag not detected, retrying... ({len(transforms)}/{n_frames})"
@@ -148,18 +148,22 @@ def detect_tag_zeroed(
     tag_id: int,
     tag_size_m: float,
     detector: Detector,
-) -> np.ndarray | None:
-    # Load zeroed calibration
+) -> tuple[np.ndarray | None, np.ndarray | None, object | None]:
+    """Detect tag and apply zero calibration.
+
+    Returns (T_zeroed, rgb_frame, detection) — any element may be None.
+    """
     t_zero = load_zero()
     if t_zero is None:
         raise RuntimeError(
             "No zero calibration found. Run calibrate_zero() to set one."
         )
 
-    # Get april tag
-    transform = detect_tag(pipeline, intrinsics, tag_id, tag_size_m, detector)
+    transform, frame, det = detect_tag(
+        pipeline, intrinsics, tag_id, tag_size_m, detector
+    )
 
     if transform is not None:
         transform = apply_zero(transform, t_zero)
 
-    return transform
+    return transform, frame, det

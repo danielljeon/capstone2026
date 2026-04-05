@@ -24,7 +24,17 @@ T_APRIL_TAG_TO_EE_ROT = np.array(
         [1, 0, 0, 0],
         [0, 0, 0, 1],
     ]
-)  # Rx(-90) * Rz(-90)
+)
+
+
+def tag_to_ee(t: np.ndarray) -> np.ndarray:
+    """Remap a zeroed tag transform into the EE frame."""
+    t = T_APRIL_TAG_TO_EE_POS @ t @ T_APRIL_TAG_TO_EE_ROT
+    t[0, 3] *= -1
+    t[2, 3] *= -1
+    d = np.diag([-1.0, 1.0, -1.0])
+    t[:3, :3] = d @ t[:3, :3] @ d
+    return t
 
 
 def tool_stand_detect() -> np.ndarray | None:
@@ -32,18 +42,9 @@ def tool_stand_detect() -> np.ndarray | None:
     pipeline = start_pipeline()
     intrinsics = get_realsense_intrinsics(pipeline)
 
-    transform = detect_tag_zeroed(
+    transform, _, _ = detect_tag_zeroed(
         pipeline, intrinsics, TOOL_STAND_TAG_ID, TOOL_STAND_TAG_SIZE_M, detector
     )
     if transform is not None:
-        transform = T_APRIL_TAG_TO_EE_POS @ transform @ T_APRIL_TAG_TO_EE_ROT
-
-        # Fix axis inversions
-        transform[0, 3] *= -1
-        transform[2, 3] *= -1
-
-        # Fix rotation inversions
-        d = np.diag([-1.0, 1.0, -1.0])
-        transform[:3, :3] = d @ transform[:3, :3] @ d
-
+        transform = tag_to_ee(transform)
     return transform
