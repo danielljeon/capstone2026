@@ -53,7 +53,11 @@ def run_tool_end(
     current_limit: float | None = None,
     ignore_start_current: bool = False,
     start_current_time_s: float = 0.1,
+    plot_playback: bool = False,
 ):
+    times = []
+    currents = []
+
     try:
         if current_limit is None:
             hbridge_drive(
@@ -65,12 +69,10 @@ def run_tool_end(
 
             hbridge_drive(hbridge.bus, hbridge, speed, 0, reverse=reverse)
 
-            # Ignore current for start_current_time_s if enabled.
             if ignore_start_current:
                 while time.time() - start < start_current_time_s:
                     pass
 
-            # Check for current limit.
             while (time.time() - start) < duration_s:
                 msg = hbridge.bus.recv(timeout=0.1)
 
@@ -81,8 +83,23 @@ def run_tool_end(
                     decoded = hbridge.current_message.decode(msg.data)
                     current = decoded["current_mA"]
 
+                    times.append(time.time() - start)
+                    currents.append(current)
+
                     if current > current_limit:
                         break
 
     finally:
         hbridge_coast(hbridge.bus, hbridge)
+
+    if plot_playback and times:
+        import matplotlib.pyplot as plt
+
+        plt.figure()
+        plt.plot(times, currents, label="Current (mA)")
+        plt.axhline(y=current_limit, color="r", linestyle="--", label="Limit")
+        plt.xlabel("Time (s)")
+        plt.ylabel("Current (mA)")
+        plt.legend()
+        plt.title("Tool End Current")
+        plt.show()
