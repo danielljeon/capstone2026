@@ -1,6 +1,3 @@
 [submodule "robot_arm"]
 	path = robot_arm
 	url = https://github.com/scalpelspace/robot_arm
-[submodule "drivers/pwm_node_driver"]
-	path = drivers/pwm_node_driver
-	url = https://github.com/scalpelspace/pwm_node_driver
