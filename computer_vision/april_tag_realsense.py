@@ -10,7 +10,7 @@ import numpy as np
 import pyrealsense2 as rs
 from pupil_apriltags import Detector
 
-CALIBRATION_FILE = Path("zero_transform.npy")
+CALIBRATION_FILE = Path("zero_transform.csv")
 
 
 def get_realsense_intrinsics(pipeline: rs.pipeline) -> dict:
@@ -123,14 +123,14 @@ def calibrate_zero(
     t_zero[:3, :3] = R_ortho
     t_zero[:3, 3] = t_mean
 
-    np.save(save_path, t_zero)
+    np.savetxt(save_path, t_zero, delimiter=",")
     print(f"Zero saved to {save_path}")
     return t_zero
 
 
 def load_zero(path: Path = CALIBRATION_FILE) -> np.ndarray | None:
     if path.exists():
-        return np.load(path)
+        return np.loadtxt(path, delimiter=",")
     return None
 
 
