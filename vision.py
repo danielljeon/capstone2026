@@ -9,7 +9,7 @@ from computer_vision.april_tag_realsense import (
 
 TOOL_STAND_TAG_ID = 1
 TOOL_STAND_TAG_SIZE_M = 0.04  # metres.
-T_APRIL_TAG_TO_EE = np.array(
+T_APRIL_TAG_TO_EE_POS = np.array(
     [
         [0, 0, 1, 0],
         [1, 0, 0, 0],
@@ -17,6 +17,14 @@ T_APRIL_TAG_TO_EE = np.array(
         [0, 0, 0, 1],
     ]
 )
+T_APRIL_TAG_TO_EE_ROT = np.array(
+    [
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [1, 0, 0, 0],
+        [0, 0, 0, 1],
+    ]
+)  # Rx(-90) * Rz(-90)
 
 
 def tool_stand_detect() -> np.ndarray | None:
@@ -28,6 +36,7 @@ def tool_stand_detect() -> np.ndarray | None:
         pipeline, intrinsics, TOOL_STAND_TAG_ID, TOOL_STAND_TAG_SIZE_M, detector
     )
     if transform is not None:
-        transform = T_APRIL_TAG_TO_EE @ transform
+        transform = T_APRIL_TAG_TO_EE_POS @ transform
+        transform = transform @ T_APRIL_TAG_TO_EE_ROT
 
     return transform
