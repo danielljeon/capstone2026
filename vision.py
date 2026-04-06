@@ -7,8 +7,6 @@ from computer_vision.april_tag_realsense import (
     detect_tag_zeroed,
 )
 
-TOOL_STAND_TAG_ID = 1
-TOOL_STAND_TAG_SIZE_M = 0.04  # metres.
 T_APRIL_TAG_TO_EE_POS = np.array(
     [
         [0, 0, 1, 0],
@@ -37,13 +35,15 @@ def tag_to_ee(t: np.ndarray) -> np.ndarray:
     return t
 
 
-def tool_stand_detect() -> np.ndarray | None:
+def tool_stand_detect(
+    april_tag_id: int, april_tag_size_m: float
+) -> np.ndarray | None:
     detector = Detector(families="tag36h11")
     pipeline = start_pipeline()
     intrinsics = get_realsense_intrinsics(pipeline)
 
     transform, _, _ = detect_tag_zeroed(
-        pipeline, intrinsics, TOOL_STAND_TAG_ID, TOOL_STAND_TAG_SIZE_M, detector
+        pipeline, intrinsics, april_tag_id, april_tag_size_m, detector
     )
     if transform is not None:
         transform = tag_to_ee(transform)

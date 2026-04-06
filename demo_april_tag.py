@@ -1,6 +1,7 @@
 """
 >>> python demo_april_tag.py  # headless
 >>> python demo_april_tag.py --gui  # live overlay
+>>> python demo_april_tag.py --gui --tag 3  # target tag 3
 """
 
 import argparse
@@ -16,7 +17,7 @@ from computer_vision.april_tag_realsense import (
     get_realsense_intrinsics,
     detect_tag_zeroed,
 )
-from vision import tag_to_ee, TOOL_STAND_TAG_ID, TOOL_STAND_TAG_SIZE_M
+from vision import tag_to_ee
 
 
 def print_transform(T: np.ndarray, label: str = "Transform") -> None:
@@ -31,16 +32,18 @@ def print_transform(T: np.ndarray, label: str = "Transform") -> None:
         print(f"    [{row[0]:+.4f}  {row[1]:+.4f}  {row[2]:+.4f}]")
 
 
-def run_headless():
+def run_headless(april_tag_id: int = 1):
     from vision import tool_stand_detect
 
     while True:
-        T = tool_stand_detect()
+        T = tool_stand_detect(april_tag_id=april_tag_id)
         if T is not None:
             print_transform(T, "Tool Stand")
 
 
-def run_gui(flip: bool = False):
+def run_gui(
+    flip: bool = False, april_tag_id: int = 1, april_tag_size_m: float = 0.04
+):
     detector = Detector(families="tag36h11")
     pipeline = start_pipeline()
     intrinsics = get_realsense_intrinsics(pipeline)
@@ -64,8 +67,8 @@ def run_gui(flip: bool = False):
             T, frame, det = detect_tag_zeroed(
                 pipeline,
                 intrinsics,
-                TOOL_STAND_TAG_ID,
-                TOOL_STAND_TAG_SIZE_M,
+                april_tag_id,
+                april_tag_size_m,
                 detector,
             )
             if frame is None:
@@ -188,7 +191,7 @@ def run_gui(flip: bool = False):
                 writer.write(frame)
 
             # Help bar with dark background strip
-            bar_text = f"[Q]uit  [R]ec  [S]nap  [F]lip{'*' if flip else ''}"
+            bar_text = f"[Q]uit  [R]ec  [S]nap  [F]lip{'*' if flip else ''}  tag={april_tag_id}"
             bar_h = 28
             overlay = frame[h - bar_h : h, :].copy()
             cv2.rectangle(frame, (0, h - bar_h), (w, h), (0, 0, 0), -1)
@@ -258,9 +261,15 @@ if __name__ == "__main__":
         action="store_true",
         help="Rotate image 180 (upside-down camera)",
     )
+    parser.add_argument(
+        "--tag",
+        type=int,
+        default=1,
+        help="AprilTag ID to detect (default: 1)",
+    )
     args = parser.parse_args()
 
     if args.gui:
-        run_gui(flip=args.flip)
+        run_gui(flip=args.flip, april_tag_id=args.tag)
     else:
-        run_headless()
+        run_headless(april_tag_id=args.tag)
