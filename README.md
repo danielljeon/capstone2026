@@ -12,6 +12,8 @@ Robot arm Mechatronics undergraduate capstone project.
 <!-- TOC -->
 * [capstone2026](#capstone2026)
   * [1 Overview](#1-overview)
+    * [1.1 Bill of Materials (BOM)](#11-bill-of-materials-bom)
+    * [1.2 Block Diagram](#12-block-diagram)
   * [2 Setup and Calibration Scripts](#2-setup-and-calibration-scripts)
   * [3 Manual Hardcoded Configs](#3-manual-hardcoded-configs)
   * [4 Runnables](#4-runnables)
@@ -23,6 +25,21 @@ Robot arm Mechatronics undergraduate capstone project.
 
 ## 1 Overview
 
+### 1.1 Bill of Materials (BOM)
+
+| Manufacturer Part Number | Manufacturer | Description       | Quantity | Notes |
+|--------------------------|--------------|-------------------|---------:|-------|
+| RSBL120-24               | Waveshare    | RS-485 24 V Motor |        4 |       |
+| ST3215-12V               | Waveshare    | UART 12 V Motor   |        2 |       |
+| CAN Controller           |              | CAN Controller    |        2 |       |
+| Intel RealSense D455f    | RealSense    | Depth Camera      |        1 |       |
+
+### 1.2 Block Diagram
+
+![capstone2026.drawio.png](docs/capstone2026.drawio.png)
+
+> Drawio file here: [capstone2026.drawio](docs/capstone2026.drawio).
+
 ---
 
 ## 2 Setup and Calibration Scripts
@@ -30,6 +47,8 @@ Robot arm Mechatronics undergraduate capstone project.
 [`motor_id.py`](drivers/motor_id.py)
 
 [`calibrate.py`](computer_vision/calibrate.py)
+
+- Generates [`zero_transform.csv`](zero_transform.csv).
 
 ---
 
@@ -52,4 +71,3 @@ Robot arm Mechatronics undergraduate capstone project.
 [`demo_run_tool.py`](demo_run_tool.py)
 
 [`demo_tool_changer.py`](demo_tool_changer.py)
-
