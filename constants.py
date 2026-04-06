@@ -35,3 +35,10 @@ START_POSE = JointPose([0, -0.85, 0, 0, -0.85, 0])
 
 """Nice camera and z-fold pose."""
 OPTIMAL_POSE = JointPose([0, 0, -0.17, -3.31, 0, 2.27])
+
+"""April tag related constants"""
+APRIL_TAG_SIZE_M_STANDARD = 0.04  # 40 mm for all april tags used.
+
+"""SCREW DRIVER STAND"""
+APRIl_TAG_ID_SCREWDRIVER_STAND = 1
+SCREWDRIVER_STAND_CLEARANCE_HEIGHT_M = 0.1  # Recommended vertical clearance.
