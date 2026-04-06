@@ -19,6 +19,10 @@ load_dotenv()  # Load variables from .env.
 URDF_BASE_LINK = os.getenv("URDF_BASE_LINK", "base")
 URDF_PATH = os.getenv("URDF_PATH", "./urdf/robot.urdf")
 
+"""SCREW DRIVER STAND"""
+APRIl_TAG_ID_SCREWDRIVER_STAND = 1
+SCREWDRIVER_STAND_CLEARANCE_HEIGHT_M = 0.075  # Recommended vertical clearance.
+
 
 def confirm_keys(task: str | None = None):
     while True:
@@ -136,30 +140,32 @@ def __go_to_target_height_offset(april_tag_id: int, height: float):
 
 
 def run():
-    confirm_keys("RELEASE TOOL END")  # Developer type "yes" to continue.
+    confirm_keys("RELEASE TOOL AND MOVE TO OPTIMAL POSE")
     release_tool_changer(EE2_TC)
-
-    confirm_keys("GO TO OPTIMAL POSE")  # Developer type "yes" to continue.
     __go_to_optimal()
 
-    confirm_keys("MOVE ABOVE TO SCREW DRIVER")
-    for _ in range(5):
+    confirm_keys("MOVE ABOVE TO <SCREW DRIVER>")
+    for _ in range(3):
         __go_to_target_height_offset(
-            april_tag_id=APRIl_TAG_ID_SCREWDRIVER_STAND, height=0.1
+            april_tag_id=APRIl_TAG_ID_SCREWDRIVER_STAND,
+            height=SCREWDRIVER_STAND_CLEARANCE_HEIGHT_M,
         )
 
-    confirm_keys("MOVE DOWN TO SCREW DRIVER STAND")
-    height = SCREWDRIVER_STAND_CLEARANCE_HEIGHT_M / 5
-    for i in range(5):
+    confirm_keys("MOVE DOWN TO <SCREW DRIVER>")
+    steps = 5
+    height = SCREWDRIVER_STAND_CLEARANCE_HEIGHT_M / steps
+    for i in range(steps):
         __go_to_target_height_offset(
-            april_tag_id=APRIl_TAG_ID_SCREWDRIVER_STAND, height=height * i
+            april_tag_id=APRIl_TAG_ID_SCREWDRIVER_STAND,
+            height=height * (steps - (i + 1)),
         )
 
-    confirm_keys("LOCK TOOL")
+    confirm_keys("LOCK TOOL AND MOVE ABOVE <SCREW DRIVER>")
     lock_tool_changer(EE2_TC)
-
-    confirm_keys("MOVE UP FIXED HEIGHT FROM TARGET")
-    # __go_to_target_height_offset(go_down=False)
+    __go_to_target_height_offset(
+        april_tag_id=APRIl_TAG_ID_SCREWDRIVER_STAND,
+        height=SCREWDRIVER_STAND_CLEARANCE_HEIGHT_M,
+    )
 
 
 if __name__ == "__main__":
