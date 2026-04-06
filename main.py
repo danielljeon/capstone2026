@@ -20,9 +20,6 @@ URDF_BASE_LINK = os.getenv("URDF_BASE_LINK", "base")
 URDF_PATH = os.getenv("URDF_PATH", "./urdf/robot.urdf")
 
 
-TOOL_STAND_HEIGHT_OFFSET_M = 0.1
-
-
 def confirm_keys(task: str | None = None):
     while True:
         prompt = (
@@ -100,7 +97,7 @@ def __go_to_optimal():
     )
 
 
-def __go_to_tool_stand_above():
+def __go_to_target_height_offset(april_tag_id: int, height: float):
     initial_q = [
         st3215_read_position_rad(JOINTS[0]),
         rsbl120_read_position_rad(JOINTS[1]),
@@ -109,12 +106,12 @@ def __go_to_tool_stand_above():
         rsbl120_read_position_rad(JOINTS[4]),
         st3215_read_position_rad(JOINTS[5]),
     ]
-    t_april_tag = tool_stand_detect()
+    t_april_tag = tool_stand_detect(april_tag_id, APRIL_TAG_SIZE_M_STANDARD)
     offset = np.array(
         [
             [1, 0, 0, 0],
             [0, 1, 0, 0],
-            [0, 0, 1, TOOL_STAND_HEIGHT_OFFSET_M],
+            [0, 0, 1, height],
             [0, 0, 0, 1],
         ]
     )
@@ -123,7 +120,6 @@ def __go_to_tool_stand_above():
         urdf_path=URDF_PATH,
         initial_q=initial_q,
         t_target=t_april_tag,
-        animate=True,
         dt=IK_DT_S,
         min_segment_time=4.0,
         step_m=0.01,
@@ -139,46 +135,6 @@ def __go_to_tool_stand_above():
     )
 
 
-def __go_z_tool_stand_height(go_down: bool = False):
-    initial_q = [
-        st3215_read_position_rad(JOINTS[0]),
-        rsbl120_read_position_rad(JOINTS[1]),
-        rsbl120_read_position_rad(JOINTS[2]),
-        rsbl120_read_position_rad(JOINTS[3]),
-        rsbl120_read_position_rad(JOINTS[4]),
-        st3215_read_position_rad(JOINTS[5]),
-    ]
-    direction = -1 if go_down else 1
-    target = np.array(
-        [
-            [1, 0, 0, 0],
-            [0, 1, 0, 0],
-            [0, 0, 1, direction * TOOL_STAND_HEIGHT_OFFSET_M],
-            [0, 0, 0, 1],
-        ]
-    )
-    q_frames = ik_relative_from_q(
-        urdf_base_link=URDF_BASE_LINK,
-        urdf_path=URDF_PATH,
-        initial_q=initial_q,
-        t_target=target,
-        animate=True,
-        dt=IK_DT_S,
-        min_segment_time=4.0,
-        step_m=0.01,
-        smooth_alpha=0.3,
-        offset=None,
-    )
-    execute_q_frames(
-        q_frames,
-        JOINTS,
-        dt=IK_DT_S,
-        move_time_ms=int(IK_DT_S * 1000),
-        settle_ms=50,
-    )
-    return target
-
-
 def run():
     confirm_keys("RELEASE TOOL END")  # Developer type "yes" to continue.
     release_tool_changer(EE2_TC)
@@ -186,23 +142,24 @@ def run():
     confirm_keys("GO TO OPTIMAL POSE")  # Developer type "yes" to continue.
     __go_to_optimal()
 
-    confirm_keys("MOVE TO ABOVE TARGET - 1 of 3")
-    __go_to_tool_stand_above()
+    confirm_keys("MOVE ABOVE TO SCREW DRIVER")
+    for _ in range(5):
+        __go_to_target_height_offset(
+            april_tag_id=APRIl_TAG_ID_SCREWDRIVER_STAND, height=0.1
+        )
 
-    confirm_keys("MOVE TO ABOVE TARGET - 2 of 3")
-    __go_to_tool_stand_above()
-
-    confirm_keys("MOVE TO ABOVE TARGET - 3 of 3")
-    __go_to_tool_stand_above()
-
-    confirm_keys("MOVE DOWN FIXED HEIGHT TO TARGET")
-    __go_z_tool_stand_height(go_down=True)
+    confirm_keys("MOVE DOWN TO SCREW DRIVER STAND")
+    height = SCREWDRIVER_STAND_CLEARANCE_HEIGHT_M / 5
+    for i in range(5):
+        __go_to_target_height_offset(
+            april_tag_id=APRIl_TAG_ID_SCREWDRIVER_STAND, height=height * i
+        )
 
     confirm_keys("LOCK TOOL")
     lock_tool_changer(EE2_TC)
 
     confirm_keys("MOVE UP FIXED HEIGHT FROM TARGET")
-    __go_z_tool_stand_height(go_down=False)
+    # __go_to_target_height_offset(go_down=False)
 
 
 if __name__ == "__main__":
