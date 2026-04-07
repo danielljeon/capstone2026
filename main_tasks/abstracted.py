@@ -8,7 +8,9 @@ from robot_arm import *
 from vision import tag_to_robot_tag_detect
 
 
-def go_to_target_height_offset(april_tag_id: int, height: float):
+def go_to_target_height_offset(
+    april_tag_id: int, height: float, min_segment_time: float = 3.0
+):
     initial_q = [
         st3215_read_position_rad(JOINTS[0]),
         rsbl120_read_position_rad(JOINTS[1]),
@@ -34,7 +36,7 @@ def go_to_target_height_offset(april_tag_id: int, height: float):
         initial_q=initial_q,
         t_target=t_april_tag,
         dt=IK_DT_S,
-        min_segment_time=4.0,
+        min_segment_time=min_segment_time,
         step_m=0.01,
         smooth_alpha=0.3,
         offset=offset,
