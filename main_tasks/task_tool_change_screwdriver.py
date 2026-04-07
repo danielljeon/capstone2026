@@ -9,7 +9,9 @@ from .abstracted import go_to_target_height_offset
 APRIl_TAG_ID_SCREWDRIVER_STAND = 1
 SCREWDRIVER_STAND_M = 0.075  # Tool stand entry vertical clearance.
 SCREWDRIVER_STAND_AND_TOOL_M = 0.15  # Tool stand exit and raise clearance.
-SCREWDRIVER_STAND_CALIBRATION_FILE_PATH = "april_tag_cal_screwdriver_stand.csv"
+SCREWDRIVER_STAND_CALIBRATION_FILE_PATH = (
+    "computer_vision_cals/april_tag_cal_screwdriver_stand.csv"
+)
 
 
 def tool_change_to_screw_driver():

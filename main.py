@@ -2,6 +2,7 @@ from constants import *
 from drivers.motor_rsbl120 import rsbl120_read_position_rad
 from drivers.motor_st3215 import st3215_read_position_rad
 from main_tasks.task_tool_change_screwdriver import tool_change_to_screw_driver
+from main_tasks.task_bolt_tighten import bolt_tighten
 from robot.end_effectors import (
     EE1_TC,
     EE2_TC,
@@ -87,6 +88,7 @@ def run():
     __go_to_optimal()
 
     tool_change_to_screw_driver()
+    bolt_tighten()
 
 
 if __name__ == "__main__":
