@@ -3,6 +3,7 @@ import numpy as np
 from constants import *
 from drivers.motor_rsbl120 import rsbl120_read_position_rad
 from drivers.motor_st3215 import st3215_read_position_rad
+from recorder import record_targets, record_q_frames
 from robot.motor_joints import JOINTS
 from robot_arm import *
 from vision import tag_to_robot_tag_detect
@@ -17,17 +18,20 @@ def go_to_optimal_pose(min_segment_time: float = 3.0):
         rsbl120_read_position_rad(JOINTS[4]),
         st3215_read_position_rad(JOINTS[5]),
     ]
+    targets = [OPTIMAL_POSE]
     q_frames = ik_path(
         urdf_base_link=URDF_BASE_LINK,
         urdf_path=URDF_PATH,
         initial_joint_angles_active=initial_q,
-        targets_xyz=[OPTIMAL_POSE],
+        targets_xyz=targets,
         segment_plans=[SegmentPlan("free")],
         dt=IK_DT_S,
         min_segment_time=min_segment_time,
         step_m=0.01,
         smooth_alpha=0.3,
     )
+    record_q_frames(q_frames)
+    record_targets(targets)
     execute_q_frames(
         q_frames,
         JOINTS,
@@ -73,6 +77,15 @@ def go_to_target_height_offset(
         smooth_alpha=0.3,
         offset=offset,
     )
+    record_q_frames(q_frames)
+    # TODO: Reimplements internal logic of ik_relative_from_q in order to record
+    #  targets.
+    temp_transform = calculate_t_relative_from_q(
+        URDF_BASE_LINK, URDF_PATH, initial_q, t_april_tag, offset
+    )
+    temp_target_pos = temp_transform[:3, 3]
+    temp_targets = [temp_target_pos.tolist()]
+    record_targets(temp_targets)
     execute_q_frames(
         q_frames,
         JOINTS,
