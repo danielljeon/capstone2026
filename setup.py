@@ -12,6 +12,20 @@ from robot.end_effectors import EE1_TC, EE1_TOOL, EE2_TC, EE2_TOOL
 from robot.motor_joints import JOINTS
 
 
+def confirm_keys(task: str | None = None):
+    while True:
+        prompt = (
+            f"Type 'yes' to continue to {task}: "
+            if task is not None
+            else "Type 'yes' to continue"
+        )
+        resp = input(prompt).strip().lower()
+        if resp == "yes":
+            break
+        print("Please type 'yes' to continue.")
+    print("Continuing...")
+
+
 def __init_comms(
     can_bus_target: bool = True,
     rsbl120_comm_target: bool = True,

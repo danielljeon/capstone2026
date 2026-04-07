@@ -25,7 +25,7 @@ T_APRIL_TAG_TO_EE_ROT = np.array(
 )
 
 
-def tag_to_ee(t: np.ndarray) -> np.ndarray:
+def __tag_to_ee(t: np.ndarray) -> np.ndarray:
     """Remap a zeroed tag transform into the EE frame."""
     t = T_APRIL_TAG_TO_EE_POS @ t @ T_APRIL_TAG_TO_EE_ROT
     t[0, 3] *= -1
@@ -35,7 +35,7 @@ def tag_to_ee(t: np.ndarray) -> np.ndarray:
     return t
 
 
-def tool_stand_detect(
+def tag_to_robot_tag_detect(
     april_tag_id: int, april_tag_size_m: float
 ) -> np.ndarray | None:
     detector = Detector(families="tag36h11")
@@ -46,5 +46,5 @@ def tool_stand_detect(
         pipeline, intrinsics, april_tag_id, april_tag_size_m, detector
     )
     if transform is not None:
-        transform = tag_to_ee(transform)
+        transform = __tag_to_ee(transform)
     return transform
