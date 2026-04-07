@@ -9,6 +9,7 @@ from .abstracted import go_to_target_height_offset
 APRIl_TAG_ID_SCREWDRIVER_STAND = 1
 SCREWDRIVER_STAND_M = 0.075  # Tool stand entry vertical clearance.
 SCREWDRIVER_STAND_AND_TOOL_M = 0.15  # Tool stand exit and raise clearance.
+SCREWDRIVER_STAND_CALIBRATION_FILE_PATH = "april_tag_cal_screwdriver_stand.csv"
 
 
 def tool_change_to_screw_driver():
@@ -17,6 +18,7 @@ def tool_change_to_screw_driver():
         go_to_target_height_offset(
             april_tag_id=APRIl_TAG_ID_SCREWDRIVER_STAND,
             height=SCREWDRIVER_STAND_M,
+            april_tag_calibration_filepath=SCREWDRIVER_STAND_CALIBRATION_FILE_PATH,
         )
 
     confirm_keys("MOVE DOWN TO <SCREW DRIVER>")
@@ -26,6 +28,7 @@ def tool_change_to_screw_driver():
         go_to_target_height_offset(
             april_tag_id=APRIl_TAG_ID_SCREWDRIVER_STAND,
             height=height * (steps - (i + 1)),
+            april_tag_calibration_filepath=SCREWDRIVER_STAND_CALIBRATION_FILE_PATH,
             min_segment_time=1.0,  # Smaller segment times.
         )
 
@@ -34,4 +37,5 @@ def tool_change_to_screw_driver():
     go_to_target_height_offset(
         april_tag_id=APRIl_TAG_ID_SCREWDRIVER_STAND,
         height=SCREWDRIVER_STAND_AND_TOOL_M,
+        april_tag_calibration_filepath=SCREWDRIVER_STAND_CALIBRATION_FILE_PATH,
     )

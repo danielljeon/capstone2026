@@ -48,8 +48,6 @@ Robot arm Mechatronics undergraduate capstone project.
 
 [`calibrate.py`](computer_vision/calibrate.py)
 
-- Generates [`zero_transform.csv`](zero_transform.csv).
-
 ---
 
 ## 3 Manual Hardcoded Configs

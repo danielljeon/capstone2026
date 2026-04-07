@@ -25,7 +25,7 @@ T_APRIL_TAG_TO_EE_ROT = np.array(
 )
 
 
-def __tag_to_ee(t: np.ndarray) -> np.ndarray:
+def tag_to_ee(t: np.ndarray) -> np.ndarray:
     """Remap a zeroed tag transform into the EE frame."""
     t = T_APRIL_TAG_TO_EE_POS @ t @ T_APRIL_TAG_TO_EE_ROT
     t[0, 3] *= -1
@@ -36,15 +36,20 @@ def __tag_to_ee(t: np.ndarray) -> np.ndarray:
 
 
 def tag_to_robot_tag_detect(
-    april_tag_id: int, april_tag_size_m: float
+    april_tag_id: int, april_tag_size_m: float, calibration_filepath: str
 ) -> np.ndarray | None:
     detector = Detector(families="tag36h11")
     pipeline = start_pipeline()
     intrinsics = get_realsense_intrinsics(pipeline)
 
     transform, _, _ = detect_tag_zeroed(
-        pipeline, intrinsics, april_tag_id, april_tag_size_m, detector
+        pipeline,
+        intrinsics,
+        april_tag_id,
+        april_tag_size_m,
+        detector,
+        calibration_filepath,
     )
     if transform is not None:
-        transform = __tag_to_ee(transform)
+        transform = tag_to_ee(transform)
     return transform

@@ -9,7 +9,10 @@ from vision import tag_to_robot_tag_detect
 
 
 def go_to_target_height_offset(
-    april_tag_id: int, height: float, min_segment_time: float = 3.0
+    april_tag_id: int,
+    april_tag_calibration_filepath: str,
+    height: float,
+    min_segment_time: float = 3.0,
 ):
     initial_q = [
         st3215_read_position_rad(JOINTS[0]),
@@ -20,7 +23,7 @@ def go_to_target_height_offset(
         st3215_read_position_rad(JOINTS[5]),
     ]
     t_april_tag = tag_to_robot_tag_detect(
-        april_tag_id, APRIL_TAG_SIZE_M_STANDARD
+        april_tag_id, APRIL_TAG_SIZE_M_STANDARD, april_tag_calibration_filepath
     )
     offset = np.array(
         [
