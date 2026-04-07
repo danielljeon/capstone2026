@@ -1,3 +1,5 @@
+import time
+
 from robot.end_effectors import (
     EE2_TOOL,
     run_tool_end,
@@ -13,8 +15,12 @@ BOLT_TASK_CALIBRATION_FILE_PATH = (
 )
 
 
-def bolt_tighten():
-    confirm_keys("MOVE ABOVE TO <BOLT>")
+def bolt_tighten(safety_on: bool = True):
+    if safety_on:
+        confirm_keys("MOVE ABOVE TO <BOLT>")
+    else:
+        time.sleep(1)
+
     for _ in range(3):
         go_to_target_height_offset(
             april_tag_id=APRIl_TAG_ID_BOLT_TASK,
@@ -22,7 +28,11 @@ def bolt_tighten():
             april_tag_calibration_filepath=BOLT_TASK_CALIBRATION_FILE_PATH,
         )
 
-    confirm_keys("MOVE DOWN TO <BOLT>")
+    if safety_on:
+        confirm_keys("MOVE DOWN TO <BOLT>")
+    else:
+        time.sleep(1)
+
     steps = 5
     height = BOLT_TASK_M / steps
     for i in range(steps):
@@ -32,7 +42,11 @@ def bolt_tighten():
             april_tag_calibration_filepath=BOLT_TASK_CALIBRATION_FILE_PATH,
         )
 
-    confirm_keys("TIGHTEN <BOLT>")
+    if safety_on:
+        confirm_keys("TIGHTEN <BOLT>")
+    else:
+        time.sleep(1)
+
     run_tool_end(
         hbridge=EE2_TOOL,
         speed=1,
@@ -45,7 +59,11 @@ def bolt_tighten():
         playback_csv_dir=".",
     )
 
-    confirm_keys("MOVE ABOVE <BOLT>")
+    if safety_on:
+        confirm_keys("MOVE ABOVE <BOLT>")
+    else:
+        time.sleep(1)
+
     go_to_target_height_offset(
         april_tag_id=APRIl_TAG_ID_BOLT_TASK,
         height=BOLT_TASK_M,

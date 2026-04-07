@@ -1,7 +1,6 @@
-from robot.end_effectors import (
-    EE2_TC,
-    lock_tool_changer,
-)
+import time
+
+from robot.end_effectors import EE2_TC, lock_tool_changer
 from setup import confirm_keys
 from .abstracted import go_to_target_height_offset
 
@@ -14,8 +13,12 @@ SCREWDRIVER_STAND_CALIBRATION_FILE_PATH = (
 )
 
 
-def tool_change_to_screw_driver():
-    confirm_keys("MOVE ABOVE TO <SCREW DRIVER>")
+def tool_change_to_screw_driver(safety_on: bool = True):
+    if safety_on:
+        confirm_keys("MOVE ABOVE TO <SCREW DRIVER>")
+    else:
+        time.sleep(1)
+
     for _ in range(3):
         go_to_target_height_offset(
             april_tag_id=APRIl_TAG_ID_SCREWDRIVER_STAND,
@@ -23,18 +26,26 @@ def tool_change_to_screw_driver():
             april_tag_calibration_filepath=SCREWDRIVER_STAND_CALIBRATION_FILE_PATH,
         )
 
-    confirm_keys("MOVE DOWN TO <SCREW DRIVER>")
-    steps = 5
+    if safety_on:
+        confirm_keys("MOVE DOWN TO <SCREW DRIVER>")
+    else:
+        time.sleep(1)
+
+    steps = 3
     height = SCREWDRIVER_STAND_M / steps
     for i in range(steps):
         go_to_target_height_offset(
             april_tag_id=APRIl_TAG_ID_SCREWDRIVER_STAND,
-            height=height * (steps - (i + 1)),
+            height=height * (steps - (i + 1)) - 0.005,
             april_tag_calibration_filepath=SCREWDRIVER_STAND_CALIBRATION_FILE_PATH,
             min_segment_time=1.0,  # Smaller segment times.
         )
 
-    confirm_keys("LOCK TOOL AND MOVE ABOVE <SCREW DRIVER>")
+    if safety_on:
+        confirm_keys("LOCK TOOL AND MOVE ABOVE <SCREW DRIVER>")
+    else:
+        time.sleep(1)
+
     lock_tool_changer(EE2_TC)
     go_to_target_height_offset(
         april_tag_id=APRIl_TAG_ID_SCREWDRIVER_STAND,
