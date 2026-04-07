@@ -3,6 +3,7 @@ from drivers.motor_rsbl120 import rsbl120_read_position_rad
 from drivers.motor_st3215 import st3215_read_position_rad
 from main_tasks.abstracted import go_to_optimal_pose
 from main_tasks.task_tool_change_screwdriver import tool_change_to_screw_driver
+from recorder import record_targets, record_q_frames
 from robot.end_effectors import (
     EE1_TC,
     EE2_TC,
@@ -33,20 +34,23 @@ def __startup_zero_pose():
         rsbl120_read_position_rad(JOINTS[4]),
         st3215_read_position_rad(JOINTS[5]),
     ]
+    targets = [
+        START_POSE,
+        JointPose(urdf_joint_angles_active(URDF_BASE_LINK, URDF_PATH)),
+    ]
     q_frames = ik_path(
         urdf_base_link=URDF_BASE_LINK,
         urdf_path=URDF_PATH,
         initial_joint_angles_active=initial,
-        targets_xyz=[
-            START_POSE,
-            JointPose(urdf_joint_angles_active(URDF_BASE_LINK, URDF_PATH)),
-        ],
+        targets_xyz=targets,
         segment_plans=[None, None],
         dt=IK_DT_S,
         min_segment_time=2.5,
         step_m=0.01,
         smooth_alpha=0.3,
     )
+    record_q_frames(q_frames)
+    record_targets(targets)
     execute_q_frames(
         q_frames,
         JOINTS,
