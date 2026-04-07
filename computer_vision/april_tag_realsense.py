@@ -10,8 +10,6 @@ import numpy as np
 import pyrealsense2 as rs
 from pupil_apriltags import Detector
 
-CALIBRATION_FILE = Path("zero_transform.csv")
-
 
 def get_realsense_intrinsics(pipeline: rs.pipeline) -> dict:
     profile = pipeline.get_active_profile()
@@ -81,16 +79,15 @@ def detect_tag(
 
 
 def calibrate_zero(
+    save_file_path: str,
     pipeline: rs.pipeline,
     intrinsics: dict,
     tag_id: int,
     tag_size_m: float,
     detector: Detector,
     n_frames: int = 30,
-    save_path: Path = CALIBRATION_FILE,
 ) -> np.ndarray:
-    """
-    Average T_cam_tag over n_frames and save as the zero transform.
+    """Average T_cam_tag over n_frames and save as the zero transform.
 
     Returns:
         Averaged 4x4 zero transform.
@@ -123,14 +120,16 @@ def calibrate_zero(
     t_zero[:3, :3] = R_ortho
     t_zero[:3, 3] = t_mean
 
-    np.savetxt(save_path, t_zero, delimiter=",")
-    print(f"Zero saved to {save_path}")
+    p = Path(save_file_path)
+    np.savetxt(p, t_zero, delimiter=",")
+    print(f"Zero saved to {save_file_path}")
     return t_zero
 
 
-def load_zero(path: Path = CALIBRATION_FILE) -> np.ndarray | None:
-    if path.exists():
-        return np.loadtxt(path, delimiter=",")
+def load_zero(file_path: str) -> np.ndarray | None:
+    p = Path(file_path)
+    if p.exists():
+        return np.loadtxt(p, delimiter=",")
     return None
 
 
@@ -148,22 +147,18 @@ def detect_tag_zeroed(
     tag_id: int,
     tag_size_m: float,
     detector: Detector,
+    calibration_filepath: str | None,
 ) -> tuple[np.ndarray | None, np.ndarray | None, object | None]:
     """Detect tag and apply zero calibration.
 
-    Returns (T_zeroed, rgb_frame, detection) — any element may be None.
+    Returns (T_zeroed, rgb_frame, detection) - any element may be None.
     """
-    t_zero = load_zero()
-    if t_zero is None:
-        raise RuntimeError(
-            "No zero calibration found. Run calibrate_zero() to set one."
-        )
-
     transform, frame, det = detect_tag(
         pipeline, intrinsics, tag_id, tag_size_m, detector
     )
 
-    if transform is not None:
+    if calibration_filepath is not None:
+        t_zero = load_zero(calibration_filepath)
         transform = apply_zero(transform, t_zero)
 
     return transform, frame, det

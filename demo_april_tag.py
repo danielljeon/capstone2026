@@ -2,6 +2,7 @@
 >>> python demo_april_tag.py  # headless
 >>> python demo_april_tag.py --gui  # live overlay
 >>> python demo_april_tag.py --gui --tag 3  # target tag 3
+>>> python demo_april_tag.py --gui --calibration zero_transform.csv  # cal file
 """
 
 import argparse
@@ -33,10 +34,10 @@ def print_transform(T: np.ndarray, label: str = "Transform") -> None:
 
 
 def run_headless(april_tag_id: int = 1):
-    from vision import tool_stand_detect
+    from vision import tag_to_robot_tag_detect
 
     while True:
-        T = tool_stand_detect(april_tag_id=april_tag_id)
+        T = tag_to_robot_tag_detect(april_tag_id=april_tag_id)
         if T is not None:
             print_transform(T, "Tool Stand")
 
@@ -70,6 +71,7 @@ def run_gui(
                 april_tag_id,
                 april_tag_size_m,
                 detector,
+                calibration_filepath=None,
             )
             if frame is None:
                 continue
@@ -266,6 +268,12 @@ if __name__ == "__main__":
         type=int,
         default=1,
         help="AprilTag ID to detect (default: 1)",
+    )
+    parser.add_argument(
+        "--calibration",
+        type=str,
+        default=None,
+        help="Calibration file path to apply (default: None)",
     )
     args = parser.parse_args()
 
