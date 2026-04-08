@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import numpy as np
 
 from constants import *
@@ -40,11 +42,15 @@ def go_to_target_height_offset(
     april_tag_calibration_filepath: str,
     height: float,
     min_segment_time: float = 3.0,
+    save_april_tag_data: bool = False,
 ):
     initial_q = get_active_q()
     t_april_tag = tag_to_robot_tag_detect(
         april_tag_id, APRIL_TAG_SIZE_M_STANDARD, april_tag_calibration_filepath
     )
+    if save_april_tag_data:
+        path = f"april_tag_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        np.savetxt(path, t_april_tag, delimiter=",")
     offset = np.array(
         [
             [1, 0, 0, 0],
