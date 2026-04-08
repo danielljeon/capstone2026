@@ -20,7 +20,7 @@ Robot arm Mechatronics undergraduate capstone project.
     * [2.3 Actuators Calibration](#23-actuators-calibration)
     * [2.4 Computer Vision Calibration](#24-computer-vision-calibration)
   * [3 Runnables](#3-runnables)
-  * [4 Post Runtime Recording](#4-post-runtime-recording)
+  * [4 Parallel Modules](#4-parallel-modules)
 <!-- TOC -->
 
 </details>
@@ -91,6 +91,13 @@ Quick demo and test scripts:
 
 ---
 
-## 4 Post Runtime Recording
+## 4 Parallel Modules
 
-[recorder.py](recorder.py).
+[virtualizer.py](virtualizer.py).
+
+- Handles joint angle tracking for virtual only mode.
+
+[recorder.py](recorder.py)[recorder.py](recorder.py).
+
+- Records joint angle and target related commands throughout the entire system
+  operation.
