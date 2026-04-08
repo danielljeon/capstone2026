@@ -1,5 +1,8 @@
 from constants import *
 from main_tasks.abstracted import go_to_optimal_pose
+from main_tasks.task_bolt_tighten import bolt_tighten
+from main_tasks.task_tool_change_claw import tool_change_to_claw
+from main_tasks.task_tool_change_screwdriver import tool_change_to_screw_driver
 from recorder import record_targets, record_q_frames
 from robot.end_effectors import (
     EE1_TC,
