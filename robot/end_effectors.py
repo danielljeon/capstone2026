@@ -5,6 +5,7 @@ from datetime import datetime
 
 import matplotlib.pyplot as plt
 
+from constants import RUN_VIRTUAL
 from drivers.motor_pwm_node_constants import db
 from drivers.motor_pwm_node_hbridge import HBridge, hbridge_drive, hbridge_coast
 from drivers.motor_pwm_node_servo import (
@@ -43,10 +44,16 @@ EE2_TOOL = HBridge(
 
 
 def release_tool_changer(cal: JointCal):
+    if RUN_VIRTUAL:
+        print("release_tool_changer() COMPLETE RUN VIRTUAL")
+        return
     pwm_node_servo_send_move(cal, 0)
 
 
 def lock_tool_changer(cal: JointCal):
+    if RUN_VIRTUAL:
+        print("lock_tool_changer() COMPLETE RUN VIRTUAL")
+        return
     pwm_node_servo_send_move(cal, 1.5707)  # 90 deg.
 
 
@@ -61,6 +68,10 @@ def run_tool_end(
     plot_playback: bool = False,
     playback_csv_dir: str | None = None,
 ):
+    if RUN_VIRTUAL:
+        print("run_tool_end() COMPLETE RUN VIRTUAL")
+        return
+
     times = []
     currents = []
 

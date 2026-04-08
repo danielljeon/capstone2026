@@ -25,7 +25,7 @@ def go_to_optimal_pose(min_segment_time: float = 3.0):
     update_tracked_q(q_frames[-1])
     record_q_frames(q_frames)
     record_targets(targets)
-    if RUN_VIRTUAL:
+    if not RUN_VIRTUAL:
         execute_q_frames(
             q_frames,
             JOINTS,
@@ -74,7 +74,7 @@ def go_to_target_height_offset(
     temp_target_pos = temp_transform[:3, 3]
     temp_targets = [temp_target_pos.tolist()]
     record_targets(temp_targets)
-    if RUN_VIRTUAL:
+    if not RUN_VIRTUAL:
         execute_q_frames(
             q_frames,
             JOINTS,

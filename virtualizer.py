@@ -6,12 +6,12 @@ In virtual mode, this module tracks the last joint angles allowing for some
 level of motion simulation.
 """
 
-from constants import RUN_VIRTUAL
+from constants import RUN_VIRTUAL, START_POSE
 from drivers.motor_rsbl120 import rsbl120_read_position_rad
 from drivers.motor_st3215 import st3215_read_position_rad
 from robot.motor_joints import JOINTS
 
-tracked_q = []
+tracked_q = START_POSE.q_active
 
 
 def get_active_q() -> list[float]:
