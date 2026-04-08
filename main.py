@@ -1,6 +1,4 @@
 from constants import *
-from drivers.motor_rsbl120 import rsbl120_read_position_rad
-from drivers.motor_st3215 import st3215_read_position_rad
 from main_tasks.abstracted import go_to_optimal_pose
 from main_tasks.task_tool_change_screwdriver import tool_change_to_screw_driver
 from recorder import record_targets, record_q_frames
@@ -13,6 +11,7 @@ from robot.end_effectors import (
 from robot.motor_joints import JOINTS
 from robot_arm import *
 from setup import confirm_keys, set_comms, deinit_comms
+from virtualizer import get_active_q, update_tracked_q
 
 # Environment variables load.
 load_dotenv()  # Load variables from .env.
@@ -26,14 +25,7 @@ def __startup_zero_pose():
     lock_tool_changer(EE1_TC)
 
     # Starting positions.
-    initial = [
-        st3215_read_position_rad(JOINTS[0]),
-        rsbl120_read_position_rad(JOINTS[1]),
-        rsbl120_read_position_rad(JOINTS[2]),
-        rsbl120_read_position_rad(JOINTS[3]),
-        rsbl120_read_position_rad(JOINTS[4]),
-        st3215_read_position_rad(JOINTS[5]),
-    ]
+    initial = get_active_q()
     targets = [
         START_POSE,
         JointPose(urdf_joint_angles_active(URDF_BASE_LINK, URDF_PATH)),
@@ -49,15 +41,17 @@ def __startup_zero_pose():
         step_m=0.01,
         smooth_alpha=0.3,
     )
+    update_tracked_q(q_frames[-1])
     record_q_frames(q_frames)
     record_targets(targets)
-    execute_q_frames(
-        q_frames,
-        JOINTS,
-        dt=IK_DT_S,
-        move_time_ms=int(IK_DT_S * 1000),
-        settle_ms=50,
-    )
+    if RUN_VIRTUAL:
+        execute_q_frames(
+            q_frames,
+            JOINTS,
+            dt=IK_DT_S,
+            move_time_ms=int(IK_DT_S * 1000),
+            settle_ms=50,
+        )
 
 
 def __go_robot_go():

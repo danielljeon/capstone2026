@@ -1,23 +1,15 @@
 import numpy as np
 
 from constants import *
-from drivers.motor_rsbl120 import rsbl120_read_position_rad
-from drivers.motor_st3215 import st3215_read_position_rad
 from recorder import record_targets, record_q_frames
 from robot.motor_joints import JOINTS
 from robot_arm import *
+from virtualizer import get_active_q, update_tracked_q
 from vision import tag_to_robot_tag_detect
 
 
 def go_to_optimal_pose(min_segment_time: float = 3.0):
-    initial_q = [
-        st3215_read_position_rad(JOINTS[0]),
-        rsbl120_read_position_rad(JOINTS[1]),
-        rsbl120_read_position_rad(JOINTS[2]),
-        rsbl120_read_position_rad(JOINTS[3]),
-        rsbl120_read_position_rad(JOINTS[4]),
-        st3215_read_position_rad(JOINTS[5]),
-    ]
+    initial_q = get_active_q()
     targets = [OPTIMAL_POSE]
     q_frames = ik_path(
         urdf_base_link=URDF_BASE_LINK,
@@ -30,15 +22,17 @@ def go_to_optimal_pose(min_segment_time: float = 3.0):
         step_m=0.01,
         smooth_alpha=0.3,
     )
+    update_tracked_q(q_frames[-1])
     record_q_frames(q_frames)
     record_targets(targets)
-    execute_q_frames(
-        q_frames,
-        JOINTS,
-        dt=IK_DT_S,
-        move_time_ms=int(IK_DT_S * 1000),
-        settle_ms=50,
-    )
+    if RUN_VIRTUAL:
+        execute_q_frames(
+            q_frames,
+            JOINTS,
+            dt=IK_DT_S,
+            move_time_ms=int(IK_DT_S * 1000),
+            settle_ms=50,
+        )
 
 
 def go_to_target_height_offset(
@@ -47,14 +41,7 @@ def go_to_target_height_offset(
     height: float,
     min_segment_time: float = 3.0,
 ):
-    initial_q = [
-        st3215_read_position_rad(JOINTS[0]),
-        rsbl120_read_position_rad(JOINTS[1]),
-        rsbl120_read_position_rad(JOINTS[2]),
-        rsbl120_read_position_rad(JOINTS[3]),
-        rsbl120_read_position_rad(JOINTS[4]),
-        st3215_read_position_rad(JOINTS[5]),
-    ]
+    initial_q = get_active_q()
     t_april_tag = tag_to_robot_tag_detect(
         april_tag_id, APRIL_TAG_SIZE_M_STANDARD, april_tag_calibration_filepath
     )
@@ -77,6 +64,7 @@ def go_to_target_height_offset(
         smooth_alpha=0.3,
         offset=offset,
     )
+    update_tracked_q(q_frames[-1])
     record_q_frames(q_frames)
     # TODO: Reimplements internal logic of ik_relative_from_q in order to record
     #  targets.
@@ -86,10 +74,11 @@ def go_to_target_height_offset(
     temp_target_pos = temp_transform[:3, 3]
     temp_targets = [temp_target_pos.tolist()]
     record_targets(temp_targets)
-    execute_q_frames(
-        q_frames,
-        JOINTS,
-        dt=IK_DT_S,
-        move_time_ms=int(IK_DT_S * 1000),
-        settle_ms=50,
-    )
+    if RUN_VIRTUAL:
+        execute_q_frames(
+            q_frames,
+            JOINTS,
+            dt=IK_DT_S,
+            move_time_ms=int(IK_DT_S * 1000),
+            settle_ms=50,
+        )

@@ -15,6 +15,9 @@ PWM_NODE_SERVO_BITRATE = 500_000
 RSBL120_PORT = "COM6"  # "/dev/cu.usbmodem5ABA0052171"
 ST3215_PORT = "COM5"  # "/dev/cu.usbmodem5ABA0050551"
 
+# System wide operation/joint angle tracking mode.
+RUN_VIRTUAL = True
+
 # IK and URDF driven constants.
 
 # Environment variables load.
