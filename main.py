@@ -44,7 +44,7 @@ def __startup_zero_pose():
     update_tracked_q(q_frames[-1])
     record_q_frames(q_frames)
     record_targets(targets)
-    if RUN_VIRTUAL:
+    if not RUN_VIRTUAL:
         execute_q_frames(
             q_frames,
             JOINTS,
@@ -73,7 +73,11 @@ def main():
 
         try:
             # Init and assign comms.
-            can_bus, rsbl120_comm, st3215_comm = set_comms()
+            can_bus, rsbl120_comm, st3215_comm = set_comms(
+                can_bus_target=not RUN_VIRTUAL,  # Pass False if virtual.
+                rsbl120_comm_target=not RUN_VIRTUAL,
+                st3215_comm_target=not RUN_VIRTUAL,
+            )
 
             # Initialize each joint.
             for joint in JOINTS:
