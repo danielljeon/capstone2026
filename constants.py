@@ -16,7 +16,7 @@ RSBL120_PORT = "COM6"  # "/dev/cu.usbmodem5ABA0052171"
 ST3215_PORT = "COM5"  # "/dev/cu.usbmodem5ABA0050551"
 
 # System wide operation/joint angle tracking mode.
-RUN_VIRTUAL = True
+RUN_VIRTUAL = False
 
 # IK and URDF driven constants.
 
@@ -38,6 +38,3 @@ START_POSE = JointPose([0, -0.85, 0, 0, -0.85, 0])
 
 """Nice camera and z-fold pose."""
 OPTIMAL_POSE = JointPose([0, 0, -0.17, -3.31, 0, 2.27])
-
-"""April tag related constants"""
-APRIL_TAG_SIZE_M_STANDARD = 0.04  # 40 mm for all april tags used.

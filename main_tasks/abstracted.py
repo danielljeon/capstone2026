@@ -39,6 +39,7 @@ def go_to_optimal_pose(min_segment_time: float = 3.0):
 
 def go_to_target_height_offset(
     april_tag_id: int,
+    april_tag_size_m: float,
     april_tag_calibration_filepath: str,
     height: float,
     min_segment_time: float = 3.0,
@@ -46,7 +47,7 @@ def go_to_target_height_offset(
 ):
     initial_q = get_active_q()
     t_april_tag = tag_to_robot_tag_detect(
-        april_tag_id, APRIL_TAG_SIZE_M_STANDARD, april_tag_calibration_filepath
+        april_tag_id, april_tag_size_m, april_tag_calibration_filepath
     )
     if save_april_tag_data:
         path = f"april_tag_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
