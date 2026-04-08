@@ -1,6 +1,5 @@
 from constants import *
 from main_tasks.abstracted import go_to_optimal_pose
-from main_tasks.task_tool_change_screwdriver import tool_change_to_screw_driver
 from recorder import record_targets, record_q_frames
 from robot.end_effectors import (
     EE1_TC,
@@ -58,13 +57,16 @@ def __go_robot_go():
     confirm_keys(">>>>> GO ROBOT GO!!!!! <<<<<")
     release_tool_changer(EE2_TC)
 
-    go_to_optimal_pose(5.0)
+    go_to_optimal_pose(min_segment_time=5.0)
 
-    tool_change_to_screw_driver()
+    # tool_change_to_screw_driver(safety_on=False)
+    # go_to_optimal_pose(min_segment_time=5.0)
 
-    go_to_optimal_pose(5.0)
+    # bolt_tighten(safety_on=True) TODO WIP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # go_to_optimal_pose(min_segment_time=5.0)
 
-    # bolt_tighten() TODO WIP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # tool_change_to_claw(safety_on=False)
+    # go_to_optimal_pose(min_segment_time=5.0)
 
 
 def main():
