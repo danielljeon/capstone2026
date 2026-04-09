@@ -73,37 +73,36 @@ def __go_robot_go():
 
 
 def main():
+    can_bus, rsbl120_comm, st3215_comm = None, None, None
+
     try:
-        can_bus, rsbl120_comm, st3215_comm = None, None, None
+        # Init and assign comms.
+        can_bus, rsbl120_comm, st3215_comm = set_comms(
+            can_bus_target=not RUN_VIRTUAL,  # Pass False if virtual.
+            rsbl120_comm_target=not RUN_VIRTUAL,
+            st3215_comm_target=not RUN_VIRTUAL,
+        )
 
-        try:
-            # Init and assign comms.
-            can_bus, rsbl120_comm, st3215_comm = set_comms(
-                can_bus_target=not RUN_VIRTUAL,  # Pass False if virtual.
-                rsbl120_comm_target=not RUN_VIRTUAL,
-                st3215_comm_target=not RUN_VIRTUAL,
-            )
+        # Initialize each joint.
+        for joint in JOINTS:
+            if joint.comm is not None:
+                joint.init()
 
-            # Initialize each joint.
-            for joint in JOINTS:
-                if joint.comm is not None:
-                    joint.init()
+        __startup_zero_pose()  # Startup zero pose.
 
-            __startup_zero_pose()  # Startup zero pose.
-
-            __go_robot_go()  # Run.
-
-        finally:
-            # Deinitialize each joint.
-            for joint in JOINTS:
-                if joint.comm is not None:
-                    joint.deinit()
-
-            # Close comms.
-            deinit_comms(can_bus, rsbl120_comm, st3215_comm)
+        __go_robot_go()  # Run.
 
     except KeyboardInterrupt:
         print("\nClosing program...")
+
+    finally:
+        # Deinitialize each joint.
+        for joint in JOINTS:
+            if joint.comm is not None:
+                joint.deinit()
+
+        # Close comms.
+        deinit_comms(can_bus, rsbl120_comm, st3215_comm)
 
 
 if __name__ == "__main__":
