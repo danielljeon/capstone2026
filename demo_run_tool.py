@@ -70,6 +70,8 @@ def main():
             25,
             forward,
             current_limit,
+            ignore_start_current=True,
+            start_current_time_s=0.3,
             **run_kwargs,
         )
         time.sleep(1)
