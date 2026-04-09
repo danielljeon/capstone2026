@@ -37,11 +37,11 @@ def go_to_optimal_pose(min_segment_time: float = 3.0):
         )
 
 
-def go_to_target_height_offset(
+def go_to_target_offset(
     april_tag_id: int,
     april_tag_size_m: float,
     april_tag_calibration_filepath: str,
-    height: float,
+    offset: np.ndarray,
     min_segment_time: float = 3.0,
     save_april_tag_data: bool = False,
 ):
@@ -52,14 +52,6 @@ def go_to_target_height_offset(
     if save_april_tag_data:
         path = f"april_tag_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
         np.savetxt(path, t_april_tag, delimiter=",")
-    offset = np.array(
-        [
-            [1, 0, 0, 0],
-            [0, 1, 0, 0],
-            [0, 0, 1, height],
-            [0, 0, 0, 1],
-        ]
-    )
     q_frames = ik_relative_from_q(
         urdf_base_link=URDF_BASE_LINK,
         urdf_path=URDF_PATH,
@@ -89,3 +81,29 @@ def go_to_target_height_offset(
             move_time_ms=int(IK_DT_S * 1000),
             settle_ms=50,
         )
+
+
+def go_to_target_height_offset(
+    april_tag_id: int,
+    april_tag_size_m: float,
+    april_tag_calibration_filepath: str,
+    height: float,
+    min_segment_time: float = 3.0,
+    save_april_tag_data: bool = False,
+):
+    offset = np.array(
+        [
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 1, height],
+            [0, 0, 0, 1],
+        ]
+    )
+    go_to_target_offset(
+        april_tag_id=april_tag_id,
+        april_tag_size_m=april_tag_size_m,
+        april_tag_calibration_filepath=april_tag_calibration_filepath,
+        offset=offset,
+        min_segment_time=min_segment_time,
+        save_april_tag_data=save_april_tag_data,
+    )
