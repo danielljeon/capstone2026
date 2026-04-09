@@ -5,8 +5,8 @@ from setup import confirm_keys
 from .abstracted import go_to_target_height_offset
 
 """CLAW STAND"""
-APRIl_TAG_ID_CLAW_STAND = 2
-APRIl_TAG_SIZE_M_BOLT_TASK = 0.03
+APRIL_TAG_ID_CLAW_STAND = 2
+APRIL_TAG_SIZE_M_BOLT_TASK = 0.03
 CLAW_STAND_M = 0.075  # Tool stand entry vertical clearance.
 CLAW_STAND_AND_TOOL_M = 0.15  # Tool stand exit and raise clearance.
 CLAW_STAND_CALIBRATION_FILE_PATH = (
@@ -22,8 +22,8 @@ def tool_change_to_claw(safety_on: bool = True):
 
     for _ in range(3):
         go_to_target_height_offset(
-            april_tag_id=APRIl_TAG_ID_CLAW_STAND,
-            april_tag_size_m=APRIl_TAG_SIZE_M_BOLT_TASK,
+            april_tag_id=APRIL_TAG_ID_CLAW_STAND,
+            april_tag_size_m=APRIL_TAG_SIZE_M_BOLT_TASK,
             height=CLAW_STAND_M,
             april_tag_calibration_filepath=CLAW_STAND_CALIBRATION_FILE_PATH,
         )
@@ -37,8 +37,8 @@ def tool_change_to_claw(safety_on: bool = True):
     height = CLAW_STAND_M / steps
     for i in range(steps):
         go_to_target_height_offset(
-            april_tag_id=APRIl_TAG_ID_CLAW_STAND,
-            april_tag_size_m=APRIl_TAG_SIZE_M_BOLT_TASK,
+            april_tag_id=APRIL_TAG_ID_CLAW_STAND,
+            april_tag_size_m=APRIL_TAG_SIZE_M_BOLT_TASK,
             height=height * (steps - (i + 1)) - 0.005,
             april_tag_calibration_filepath=CLAW_STAND_CALIBRATION_FILE_PATH,
             min_segment_time=1.0,  # Smaller segment times.
@@ -51,8 +51,8 @@ def tool_change_to_claw(safety_on: bool = True):
 
     lock_tool_changer(EE2_TC)
     go_to_target_height_offset(
-        april_tag_id=APRIl_TAG_ID_CLAW_STAND,
-        april_tag_size_m=APRIl_TAG_SIZE_M_BOLT_TASK,
+        april_tag_id=APRIL_TAG_ID_CLAW_STAND,
+        april_tag_size_m=APRIL_TAG_SIZE_M_BOLT_TASK,
         height=CLAW_STAND_AND_TOOL_M,
         april_tag_calibration_filepath=CLAW_STAND_CALIBRATION_FILE_PATH,
     )
