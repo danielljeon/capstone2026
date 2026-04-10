@@ -11,10 +11,10 @@ from virtualizer import get_active_q, update_tracked_q
 from .abstracted import go_to_target_height_offset, go_to_target_offset
 
 """INCH WORM"""
-APRIL_TAG_ID_INCHWORM = 1
+APRIL_TAG_ID_INCHWORM = 0
 APRIL_TAG_SIZE_M_INCHWORM = 0.04
-INCHWORM_TARGET_VERTICAL_M = 0.15  # Vertical clearance.
-INCHWORM_TARGET_LATERAL_M = 0.02  # Lateral clearance.
+INCHWORM_TARGET_VERTICAL_M = 0.01  # Vertical clearance.
+INCHWORM_TARGET_LATERAL_M = -0.02  # Lateral clearance.
 INCHWORM_CALIBRATION_FILE_PATH = (
     "computer_vision_cals/april_tag_cal_inchworm.csv"
 )
@@ -47,8 +47,8 @@ def __april_tag_on_target_loop(lateral_m: float, height_m: float):
 
 
 def __go_to_inchworm_pose():
-    inchworm_pose_1 = JointPose([0, 0.55, 0.50, -2.60, -0.55, -1.39])
-    inchworm_pose_2 = JointPose([-1.87, 0.55, 0.50, -2.60, -0.55, -1.39])
+    inchworm_pose_1 = JointPose([0, 0.42, 0.50, -2.60, -0.42, -1.39])
+    inchworm_pose_2 = JointPose([-1.87, 0.42, 0.50, -2.60, -0.20, -1.39])
 
     initial_q = get_active_q()
     targets = [
@@ -69,6 +69,16 @@ def __go_to_inchworm_pose():
     update_tracked_q(q_frames[-1])
     record_q_frames(q_frames)
     record_targets(targets)
+    if ANIMATE_ALL:
+        animate_q(
+            urdf_base_link=URDF_BASE_LINK,
+            urdf_path=URDF_PATH,
+            q_frames=q_frames,
+            targets_xyz=targets,
+            show_frames=True,
+            frame_scale=0.05,
+            frame_stride=1,
+        )
     if not RUN_VIRTUAL:
         execute_q_frames(
             q_frames,
@@ -87,21 +97,24 @@ def do_inchworm(safety_on: bool = True):
 
     __go_to_inchworm_pose()
 
-    # if safety_on:
-    #     confirm_keys("MOVE TO NEW BAR <INCH WORM>")
-    # else:
-    #     time.sleep(1)
-    #
-    # for _ in range(3):
-    #     __april_tag_clearance_loop(INCHWORM_TARGET_VERTICAL_M)
-    #
-    # steps = 3
-    # height = INCHWORM_TARGET_VERTICAL_M / steps
-    # lateral = INCHWORM_TARGET_LATERAL_M / steps
-    # for i in range(steps):
-    #     __april_tag_on_target_loop(
-    #         height * (steps - (i + 1)), lateral * (steps - (i + 1))
-    #     )
+    if safety_on:
+        confirm_keys("MOVE TO NEW BAR <INCH WORM>")
+    else:
+        time.sleep(1)
+
+    # Vertical
+    __april_tag_clearance_loop(INCHWORM_TARGET_VERTICAL_M)
+
+    # Small vertical and reduce horizontal
+    steps = 3
+    lateral = INCHWORM_TARGET_LATERAL_M / steps
+    for i in range(steps):
+        __april_tag_on_target_loop(
+            INCHWORM_TARGET_VERTICAL_M / 2, lateral * (steps - (i + 1))
+        )
+
+    # To target reducing vertical
+    __april_tag_clearance_loop(0)
 
     # if safety_on:
     #     confirm_keys("CLAMP CLAW (2) ON NEW BAR <INCH WORM>")
