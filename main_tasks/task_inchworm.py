@@ -4,29 +4,21 @@ import numpy as np
 
 from constants import *
 from recorder import record_targets, record_q_frames
+from robot.end_effectors import EE1_TOOL, EE2_TOOL, run_tool_end
 from robot.motor_joints import JOINTS
 from robot_arm import *
 from setup import confirm_keys
 from virtualizer import get_active_q, update_tracked_q
-from .abstracted import go_to_target_height_offset, go_to_target_offset
+from .abstracted import go_to_target_offset
 
 """INCH WORM"""
 APRIL_TAG_ID_INCHWORM = 0
 APRIL_TAG_SIZE_M_INCHWORM = 0.03
-INCHWORM_TARGET_VERTICAL_M = 0.01  # Vertical clearance.
-INCHWORM_TARGET_LATERAL_M = -0.02  # Lateral clearance.
+INCHWORM_TARGET_VERTICAL_M = 0.08  # Vertical clearance.
+INCHWORM_TARGET_LATERAL_M = -0.07  # Lateral clearance.
 INCHWORM_CALIBRATION_FILE_PATH = (
     "computer_vision_cals/april_tag_cal_inchworm.csv"
 )
-
-
-def __april_tag_clearance_loop(height_m: float):
-    go_to_target_height_offset(
-        april_tag_id=APRIL_TAG_ID_INCHWORM,
-        april_tag_size_m=APRIL_TAG_SIZE_M_INCHWORM,
-        height=height_m,
-        april_tag_calibration_filepath=INCHWORM_CALIBRATION_FILE_PATH,
-    )
 
 
 def __april_tag_on_target_loop(lateral_m: float, height_m: float):
@@ -47,19 +39,20 @@ def __april_tag_on_target_loop(lateral_m: float, height_m: float):
 
 
 def __go_to_inchworm_pose():
-    # TODO need to add at least 2 more poses to clear the handrails...
-    inchworm_pose = JointPose([-1.57, 0.35, 0.00, -3.14, -0.35, 1.57])
+    inchworm_pose_1 = JointPose([-1.04, 0.45, 0.52, -2.62, -0.45, 1.57])
+    inchworm_pose_2 = JointPose([-1.94, 0.45, 0.88, -2.54, -0.45, 1.57])
+    inchworm_pose_3 = JointPose([-1.94, 0.06, 0.88, -2.54, -0.06, 1.57])
 
     initial_q = get_active_q()
-    targets = [inchworm_pose]
+    targets = [inchworm_pose_1, inchworm_pose_2, inchworm_pose_3]
     q_frames = ik_path(
         urdf_base_link=URDF_BASE_LINK,
         urdf_path=URDF_PATH,
         initial_joint_angles_active=initial_q,
         targets_xyz=targets,
-        segment_plans=[None],
+        segment_plans=[None, None, None],
         dt=IK_DT_S,
-        min_segment_time=5.0,
+        min_segment_time=6.0,
         step_m=0.01,
         smooth_alpha=0.3,
     )
@@ -88,59 +81,42 @@ def __go_to_inchworm_pose():
 
 def do_inchworm(safety_on: bool = True):
     if safety_on:
-        confirm_keys("MOVE ABOVE TO <INCH WORM>")
+        confirm_keys("MOVE TO POSE <INCH WORM>")
     else:
         time.sleep(1)
 
     __go_to_inchworm_pose()
 
-    # TODO: WIP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    #  Vertical above and horizontal offset align
-    #  Move down to target
-    # # Vertical
-    # __april_tag_clearance_loop(INCHWORM_TARGET_VERTICAL_M)
-    #
-    # # Small vertical and reduce horizontal
-    # steps = 3
-    # lateral = INCHWORM_TARGET_LATERAL_M / steps
-    # for i in range(steps):
-    #     __april_tag_on_target_loop(
-    #         INCHWORM_TARGET_VERTICAL_M / 2, lateral * (steps - (i + 1))
-    #     )
-    #
-    # # To target reducing vertical
-    # __april_tag_clearance_loop(0)
-    #
-    # if safety_on:
-    #     confirm_keys("CLAMP CLAW (2) ON NEW BAR <INCH WORM>")
-    # else:
-    #     time.sleep(1)
-    #
-    # run_tool_end(
-    #     EE2_TOOL,
-    #     speed=1,
-    #     duration_s=45,
-    #     reverse=False,  # Close claw.
-    #     current_limit=350,
-    #     ignore_start_current=True,
-    #     start_current_time_s=0.5,
-    # )
-    #
-    # if safety_on:
-    #     confirm_keys("OPEN CLAW (1) ON OLD BAR AND MOVE AWAY <INCH WORM>")
-    # else:
-    #     time.sleep(1)
-    #
-    # run_tool_end(
-    #     EE2_TOOL,
-    #     speed=1,
-    #     duration_s=45,
-    #     reverse=True,  # Open claw.
-    #     current_limit=350,
-    #     ignore_start_current=True,
-    #     start_current_time_s=0.5,
-    # )
-    #
+    if safety_on:
+        confirm_keys("CLAMP CLAW (2) ON NEW BAR <INCH WORM>")
+    else:
+        time.sleep(1)
+
+    run_tool_end(
+        EE2_TOOL,
+        speed=1,
+        duration_s=25,
+        reverse=False,  # Close claw.
+        current_limit=450,
+        ignore_start_current=True,
+        start_current_time_s=0.5,
+    )
+
+    if safety_on:
+        confirm_keys("OPEN CLAW (1) ON OLD BAR AND MOVE AWAY <INCH WORM>")
+    else:
+        time.sleep(1)
+
+    run_tool_end(
+        EE1_TOOL,
+        speed=1,
+        duration_s=25,
+        reverse=True,  # Open claw.
+        current_limit=450,
+        ignore_start_current=True,
+        start_current_time_s=0.5,
+    )
+
     # if safety_on:
     #     confirm_keys("MOVE TO NEW MIRRORED ZERO <INCH WORM>")
     # else:
