@@ -12,7 +12,7 @@ from .abstracted import go_to_target_height_offset, go_to_target_offset
 
 """INCH WORM"""
 APRIL_TAG_ID_INCHWORM = 0
-APRIL_TAG_SIZE_M_INCHWORM = 0.04
+APRIL_TAG_SIZE_M_INCHWORM = 0.03
 INCHWORM_TARGET_VERTICAL_M = 0.01  # Vertical clearance.
 INCHWORM_TARGET_LATERAL_M = -0.02  # Lateral clearance.
 INCHWORM_CALIBRATION_FILE_PATH = (
