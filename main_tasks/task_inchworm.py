@@ -47,20 +47,17 @@ def __april_tag_on_target_loop(lateral_m: float, height_m: float):
 
 
 def __go_to_inchworm_pose():
-    inchworm_pose_1 = JointPose([0, 0.42, 0.50, -2.60, -0.42, -1.39])
-    inchworm_pose_2 = JointPose([-1.87, 0.42, 0.50, -2.60, -0.20, -1.39])
+    # TODO need to add at least 2 more poses to clear the handrails...
+    inchworm_pose = JointPose([-1.57, 0.35, 0.00, -3.14, -0.35, 1.57])
 
     initial_q = get_active_q()
-    targets = [
-        inchworm_pose_1,  # Move to clear the first (old) handrail laterally.
-        inchworm_pose_2,  # Sweep towards the second (new) handrail laterally.
-    ]
+    targets = [inchworm_pose]
     q_frames = ik_path(
         urdf_base_link=URDF_BASE_LINK,
         urdf_path=URDF_PATH,
         initial_joint_angles_active=initial_q,
         targets_xyz=targets,
-        segment_plans=[None, None],
+        segment_plans=[None],
         dt=IK_DT_S,
         min_segment_time=5.0,
         step_m=0.01,
@@ -97,25 +94,23 @@ def do_inchworm(safety_on: bool = True):
 
     __go_to_inchworm_pose()
 
-    if safety_on:
-        confirm_keys("MOVE TO NEW BAR <INCH WORM>")
-    else:
-        time.sleep(1)
-
-    # Vertical
-    __april_tag_clearance_loop(INCHWORM_TARGET_VERTICAL_M)
-
-    # Small vertical and reduce horizontal
-    steps = 3
-    lateral = INCHWORM_TARGET_LATERAL_M / steps
-    for i in range(steps):
-        __april_tag_on_target_loop(
-            INCHWORM_TARGET_VERTICAL_M / 2, lateral * (steps - (i + 1))
-        )
-
-    # To target reducing vertical
-    __april_tag_clearance_loop(0)
-
+    # TODO: WIP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    #  Vertical above and horizontal offset align
+    #  Move down to target
+    # # Vertical
+    # __april_tag_clearance_loop(INCHWORM_TARGET_VERTICAL_M)
+    #
+    # # Small vertical and reduce horizontal
+    # steps = 3
+    # lateral = INCHWORM_TARGET_LATERAL_M / steps
+    # for i in range(steps):
+    #     __april_tag_on_target_loop(
+    #         INCHWORM_TARGET_VERTICAL_M / 2, lateral * (steps - (i + 1))
+    #     )
+    #
+    # # To target reducing vertical
+    # __april_tag_clearance_loop(0)
+    #
     # if safety_on:
     #     confirm_keys("CLAMP CLAW (2) ON NEW BAR <INCH WORM>")
     # else:
