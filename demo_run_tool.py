@@ -15,7 +15,7 @@ from robot.end_effectors import (
 from setup import set_comms, deinit_comms
 
 TOOL_MAP = {1: EE1_TOOL, 2: EE2_TOOL}
-CURRENT_LIMIT = {1: 450.0, 2: 350.0}
+CURRENT_LIMIT = {1: 450.0, 2: 450.0}
 
 
 def main():
