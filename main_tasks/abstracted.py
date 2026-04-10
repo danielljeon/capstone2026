@@ -27,6 +27,16 @@ def go_to_optimal_pose(min_segment_time: float = 3.0):
     update_tracked_q(q_frames[-1])
     record_q_frames(q_frames)
     record_targets(targets)
+    if ANIMATE_ALL:
+        animate_q(
+            urdf_base_link=URDF_BASE_LINK,
+            urdf_path=URDF_PATH,
+            q_frames=q_frames,
+            targets_xyz=targets,
+            show_frames=True,
+            frame_scale=0.05,
+            frame_stride=1,
+        )
     if not RUN_VIRTUAL:
         execute_q_frames(
             q_frames,
@@ -73,6 +83,16 @@ def go_to_target_offset(
     temp_target_pos = temp_transform[:3, 3]
     temp_targets = [temp_target_pos.tolist()]
     record_targets(temp_targets)
+    if ANIMATE_ALL:
+        animate_q(
+            urdf_base_link=URDF_BASE_LINK,
+            urdf_path=URDF_PATH,
+            q_frames=q_frames,
+            targets_xyz=temp_targets,
+            show_frames=True,
+            frame_scale=0.05,
+            frame_stride=1,
+        )
     if not RUN_VIRTUAL:
         execute_q_frames(
             q_frames,

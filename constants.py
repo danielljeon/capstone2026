@@ -17,6 +17,7 @@ ST3215_PORT = "COM5"  # "/dev/cu.usbmodem5ABA0050551"
 
 # System wide operation/joint angle tracking mode.
 RUN_VIRTUAL = False
+ANIMATE_ALL = False
 
 # IK and URDF driven constants.
 
