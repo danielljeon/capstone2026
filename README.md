@@ -86,6 +86,7 @@ calibrations for known April Tags and targets.
 Quick demo and test scripts:
 
 - [`demo_april_tag.py`](demo_april_tag.py).
+- [`demo_read_q.py`](demo_read_q.py).
 - [`demo_run_tool.py`](demo_run_tool.py).
 - [`demo_tool_changer.py`](demo_tool_changer.py).
 
@@ -97,7 +98,7 @@ Quick demo and test scripts:
 
 - Handles joint angle tracking for virtual only mode.
 
-[recorder.py](recorder.py)[recorder.py](recorder.py).
+[recorder.py](recorder.py).
 
 - Records joint angle and target related commands throughout the entire system
   operation.
