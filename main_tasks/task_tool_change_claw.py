@@ -1,6 +1,6 @@
 import time
 
-from robot.end_effectors import EE2_TC, lock_tool_changer
+from robot.end_effectors import EE2_TC, lock_tool_changer, release_tool_changer
 from setup import confirm_keys
 from .abstracted import go_to_target_height_offset
 
@@ -14,7 +14,7 @@ CLAW_STAND_CALIBRATION_FILE_PATH = (
 )
 
 
-def tool_change_to_claw(safety_on: bool = True):
+def tool_change_to_claw(safety_on: bool = True, return_tool: bool = False):
     if safety_on:
         confirm_keys("MOVE ABOVE TO <CLAW>")
     else:
@@ -29,10 +29,17 @@ def tool_change_to_claw(safety_on: bool = True):
         )
 
     if safety_on:
-        confirm_keys("MOVE DOWN TO <CLAW>")
+        confirm_keys(
+            f"{'LOCK' if return_tool else 'RELEASE'} TC AND MOVE DOWN TO "
+            f"<CLAW>"
+        )
     else:
         time.sleep(1)
 
+    if return_tool:
+        lock_tool_changer(EE2_TC)  # Double check locked
+    else:
+        release_tool_changer(EE2_TC)
     steps = 3
     height = CLAW_STAND_M / steps
     for i in range(steps):
@@ -45,11 +52,17 @@ def tool_change_to_claw(safety_on: bool = True):
         )
 
     if safety_on:
-        confirm_keys("LOCK TOOL AND MOVE ABOVE <CLAW>")
+        confirm_keys(
+            f"{'RELEASE' if return_tool else 'LOCK'} TOOL AND MOVE ABOVE "
+            f"<CLAW>"
+        )
     else:
         time.sleep(1)
 
-    lock_tool_changer(EE2_TC)
+    if return_tool:
+        release_tool_changer(EE2_TC)
+    else:
+        lock_tool_changer(EE2_TC)
     go_to_target_height_offset(
         april_tag_id=APRIL_TAG_ID_CLAW_STAND,
         april_tag_size_m=APRIL_TAG_SIZE_M_BOLT_TASK,
