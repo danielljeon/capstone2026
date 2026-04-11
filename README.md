@@ -4,23 +4,24 @@
 
 Robot arm Mechatronics undergraduate capstone project.
 
+---
+
 <details markdown="1">
   <summary>Table of Contents</summary>
-
----
 
 <!-- TOC -->
 * [capstone2026](#capstone2026)
   * [1 Overview](#1-overview)
     * [1.1 Bill of Materials (BOM)](#11-bill-of-materials-bom)
     * [1.2 Block Diagram](#12-block-diagram)
-  * [2 Setup and Calibration Scripts](#2-setup-and-calibration-scripts)
-    * [2.1 General Setup](#21-general-setup)
-    * [2.2 Inverse Kinematics URDF](#22-inverse-kinematics-urdf)
-    * [2.3 Actuators Calibration](#23-actuators-calibration)
-    * [2.4 Computer Vision Calibration](#24-computer-vision-calibration)
-  * [3 Runnables](#3-runnables)
-  * [4 Parallel Modules](#4-parallel-modules)
+  * [2 SDK Implementation](#2-sdk-implementation)
+  * [3 Setup and Calibration Scripts](#3-setup-and-calibration-scripts)
+    * [3.1 General Setup](#31-general-setup)
+    * [3.2 Inverse Kinematics URDF](#32-inverse-kinematics-urdf)
+    * [3.3 Actuators Calibration](#33-actuators-calibration)
+    * [3.4 Computer Vision Calibration](#34-computer-vision-calibration)
+  * [4 Runnables](#4-runnables)
+  * [5 Parallel Modules](#5-parallel-modules)
 <!-- TOC -->
 
 </details>
@@ -46,13 +47,27 @@ Robot arm Mechatronics undergraduate capstone project.
 
 ---
 
-## 2 Setup and Calibration Scripts
+## 2 SDK Implementation
 
-### 2.1 General Setup
+The [drivers](drivers) directory contains individual motor and actuator
+implementations.
+
+Extended logic implementation:
+
+- [`vision.py`](vision.py).
+    - Lower vision implementation in [
+      `april_tag_realsense.py`](computer_vision/april_tag_realsense.py).
+- [`abstracted.py`](main_tasks/abstracted.py).
+
+---
+
+## 3 Setup and Calibration Scripts
+
+### 3.1 General Setup
 
 [`constants.py`](constants.py).
 
-### 2.2 Inverse Kinematics URDF
+### 3.2 Inverse Kinematics URDF
 
 - The [`robot.urdf`](urdf/robot.urdf) and assets within [urdf](urdf) define the
   robot geometry for inverse kinematics calculations, including:
@@ -60,7 +75,7 @@ Robot arm Mechatronics undergraduate capstone project.
     - Rotation axis and their joint limits.
     - Zero position.
 
-### 2.3 Actuators Calibration
+### 3.3 Actuators Calibration
 
 - [`end_effectors.py`](robot/end_effectors.py) and [
   `motor_joints.py`](robot/motor_joints.py) contain hardware (actuator)
@@ -70,7 +85,7 @@ Robot arm Mechatronics undergraduate capstone project.
 - Waveshare RSBL120-24 and ST3215-12V actuators use NVM assigned motor IDs, set
   with [`motor_id.py`](drivers/motor_id.py).
 
-### 2.4 Computer Vision Calibration
+### 3.4 Computer Vision Calibration
 
 [computer_vision_cals](computer_vision_cals) contains zero position transform
 calibrations for known April Tags and targets.
@@ -79,26 +94,35 @@ calibrations for known April Tags and targets.
 
 ---
 
-## 3 Runnables
+## 4 Runnables
 
 [`main.py`](main.py).
 
+Planned tasks (located in [main_tasks](main_tasks)):
+
+1. [`task_bolt_tighten.py`](main_tasks/task_bolt_tighten.py).
+2. [`task_inchworm.py`](main_tasks/task_inchworm.py).
+3. [`task_tool_change_claw.py`](main_tasks/task_tool_change_claw.py).
+4. [
+   `task_tool_change_screwdriver.py`](main_tasks/task_tool_change_screwdriver.py).
+5. [`task_wire.py`](main_tasks/task_wire.py).
+
 Quick demo and test scripts:
 
-- [`demo_april_tag.py`](demo_april_tag.py).
-- [`demo_read_q.py`](demo_read_q.py).
-- [`demo_run_tool.py`](demo_run_tool.py).
-- [`demo_tool_changer.py`](demo_tool_changer.py).
+1. [`demo_april_tag.py`](demo_april_tag.py).
+2. [`demo_read_q.py`](demo_read_q.py).
+3. [`demo_run_tool.py`](demo_run_tool.py).
+4. [`demo_tool_changer.py`](demo_tool_changer.py).
 
 ---
 
-## 4 Parallel Modules
+## 5 Parallel Modules
 
-[virtualizer.py](virtualizer.py).
+[`virtualizer.py`](virtualizer.py).
 
 - Handles joint angle tracking for virtual only mode.
 
-[recorder.py](recorder.py).
+[`recorder.py`](recorder.py).
 
 - Records joint angle and target related commands throughout the entire system
   operation.
