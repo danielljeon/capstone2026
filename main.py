@@ -8,9 +8,7 @@ from main_tasks.task_wire import wire_replug
 from recorder import record_targets, record_q_frames
 from robot.end_effectors import (
     EE1_TC,
-    EE2_TC,
     lock_tool_changer,
-    release_tool_changer,
 )
 from robot.motor_joints import JOINTS
 from robot_arm import *
@@ -26,7 +24,7 @@ URDF_PATH = os.getenv("URDF_PATH", "./urdf/robot.urdf")
 def __startup_zero_pose():
     confirm_keys("LOCK KEYS AND MOVE TO ZERO")
 
-    lock_tool_changer(EE1_TC)
+    lock_tool_changer(EE1_TC)  # Ensure base lock.
 
     # Starting positions.
     initial = get_active_q()
@@ -60,23 +58,32 @@ def __startup_zero_pose():
 
 def __go_robot_go():
     confirm_keys(">>>>> GO ROBOT GO!!!!! <<<<<")
-    release_tool_changer(EE2_TC)
 
+    # Optimal pose.
     go_to_optimal_pose(min_segment_time=5.0)
 
-    # tool_change_to_screw_driver(safety_on=False)
-    # go_to_optimal_pose(min_segment_time=5.0)
+    # Tool change to screwdriver tool.
+    tool_change_to_screw_driver(safety_on=False, return_tool=False)
+    go_to_optimal_pose(min_segment_time=5.0)
 
-    # bolt_tighten(safety_on=True)
-    # go_to_optimal_pose(min_segment_time=5.0)
+    # Tighten bolt.
+    bolt_tighten(safety_on=False)
+    go_to_optimal_pose(min_segment_time=5.0)
 
-    # tool_change_to_claw(safety_on=False)
-    # go_to_optimal_pose(min_segment_time=5.0)
+    # Return screwdriver tool.
+    tool_change_to_screw_driver(safety_on=False, return_tool=True)
+    go_to_optimal_pose(min_segment_time=5.0)
 
-    # wire_replug(safety_on=False)
-    # go_to_optimal_pose(min_segment_time=5.0)
+    # Tool change to claw tool.
+    tool_change_to_claw(safety_on=False, return_tool=False)
+    go_to_optimal_pose(min_segment_time=5.0)
 
-    # do_inchworm(safety_on=True)
+    # Replug wire.
+    wire_replug(safety_on=False)
+    go_to_optimal_pose(min_segment_time=5.0)
+
+    # Do inchworm.
+    do_inchworm(safety_on=False)
 
 
 def main():
