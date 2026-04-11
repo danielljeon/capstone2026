@@ -1,9 +1,10 @@
 from constants import *
 from main_tasks.abstracted import go_to_optimal_pose
 from main_tasks.task_bolt_tighten import bolt_tighten
+from main_tasks.task_inchworm import do_inchworm
 from main_tasks.task_tool_change_claw import tool_change_to_claw
 from main_tasks.task_tool_change_screwdriver import tool_change_to_screw_driver
-from main_tasks.task_inchworm import do_inchworm
+from main_tasks.task_wire import wire_replug
 from recorder import record_targets, record_q_frames
 from robot.end_effectors import (
     EE1_TC,
@@ -66,10 +67,13 @@ def __go_robot_go():
     # tool_change_to_screw_driver(safety_on=False)
     # go_to_optimal_pose(min_segment_time=5.0)
 
-    # bolt_tighten(safety_on=True) TODO WIP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # bolt_tighten(safety_on=True)
     # go_to_optimal_pose(min_segment_time=5.0)
 
     # tool_change_to_claw(safety_on=False)
+    # go_to_optimal_pose(min_segment_time=5.0)
+
+    # wire_replug(safety_on=False)
     # go_to_optimal_pose(min_segment_time=5.0)
 
     # do_inchworm(safety_on=True)
