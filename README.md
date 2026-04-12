@@ -85,6 +85,7 @@ The following configuration constants are defined:
 | Constant            | Default | Description                                               |
 |---------------------|:-------:|-----------------------------------------------------------|
 | `RECORD_ALL`        | `False` | Record all computed q_active, target_xyz and target_pose. |
+| `CAMERA_RECORD`     | `False` | Record view from the RealSense camera.                    |
 | `RUN_VIRTUAL`       | `False` | System wide operation/joint angle tracking mode.          |
 | `VISER_ANIMATE_ALL` | `False` | Viser animate all moves.                                  |
 | `ANIMATE_ALL`       | `False` | Animate (matplotlib) all moves.                           |
