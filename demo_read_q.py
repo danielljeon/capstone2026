@@ -1,3 +1,7 @@
+"""Reads current joint positions from hardware and prints the raw step counts,
+angles in radians, and computed end-effector pose.
+"""
+
 from constants import URDF_BASE_LINK, URDF_PATH
 from drivers.motor_rsbl120 import (
     DEFAULT_STEP_PER_RAD as RSBL120_DEFAULT_STEP_PER_RAD,

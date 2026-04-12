@@ -1,4 +1,4 @@
-"""Quick test: lock or unlock a tool changer.
+"""Locks or unlocks a tool changer by number.
 
 >>> python demo_tool_changer.py lock 1
 >>> python demo_tool_changer.py unlock 2

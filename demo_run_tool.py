@@ -1,4 +1,5 @@
-"""Quick test: run a tool end forward or backward.
+"""Runs a tool-end motor forward or backward with an optional current limit,
+plot, and CSV output.
 
 >>> python demo_run_tool.py 2 forward
 >>> python demo_run_tool.py 2 backward --plot --csv-dir .  # local dir `.`

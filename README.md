@@ -122,11 +122,18 @@ Planned tasks (located in [main_tasks](main_tasks)):
 
 Quick demo and test scripts:
 
-1. [`demo_april_tag.py`](demo_april_tag.py).
-2. [demo_playback.py](demo_playback.py).
-3. [`demo_read_q.py`](demo_read_q.py).
-4. [`demo_run_tool.py`](demo_run_tool.py).
-5. [`demo_tool_changer.py`](demo_tool_changer.py).
+1. [`demo_april_tag.py`](demo_april_tag.py): Detects AprilTags via RealSense
+   camera, printing pose transforms to the terminal or displaying a live
+   annotated overlay with optional video recording.
+2. [`demo_playback.py`](demo_playback.py): Replays a recorded q_frames CSV
+   through matplotlib or a viser 3D viewer.
+3. [`demo_read_q.py`](demo_read_q.py): Reads current joint positions from
+   hardware and prints the raw step counts, angles in radians, and computed
+   end-effector pose.
+4. [`demo_run_tool.py`](demo_run_tool.py): Runs a tool-end motor forward or
+   backward with an optional current limit, plot, and CSV output.
+5. [`demo_tool_changer.py`](demo_tool_changer.py): Locks or unlocks a tool
+   changer by number.
 
 ---
 
