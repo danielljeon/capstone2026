@@ -90,6 +90,10 @@ def run_tool_end(
                 while time.time() - start < start_current_time_s:
                     pass
 
+            # Flush stale CAN messages before monitoring.
+            while hbridge.bus.recv(timeout=0) is not None:
+                pass
+
             while (time.time() - start) < duration_s:
                 msg = hbridge.bus.recv(timeout=0.1)
 
