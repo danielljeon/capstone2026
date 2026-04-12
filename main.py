@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from constants import *
 from main_tasks.abstracted import go_to_optimal_pose
 from main_tasks.task_bolt_tighten import bolt_tighten
@@ -14,6 +16,7 @@ from robot.motor_joints import JOINTS
 from robot_arm import *
 from setup import confirm_keys, set_comms, deinit_comms
 from virtualizer import get_active_q, update_tracked_q
+from vision import start_recording, stop_recording
 
 # Environment variables load.
 load_dotenv()  # Load variables from .env.
@@ -90,6 +93,11 @@ def main():
     can_bus, rsbl120_comm, st3215_comm = None, None, None
 
     try:
+        if not RUN_VIRTUAL:
+            # Start recording from camera.
+            recording_name = f"ee2_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
+            start_recording(recording_name)
+
         # Init and assign comms.
         can_bus, rsbl120_comm, st3215_comm = set_comms(
             can_bus_target=not RUN_VIRTUAL,  # Pass False if virtual.
@@ -117,6 +125,10 @@ def main():
 
         # Close comms.
         deinit_comms(can_bus, rsbl120_comm, st3215_comm)
+
+        if not RUN_VIRTUAL:
+            # Stop recording from camera.
+            stop_recording()
 
 
 if __name__ == "__main__":

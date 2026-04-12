@@ -39,18 +39,23 @@ def detect_tag(
     tag_id: int,
     tag_size_m: float,
     detector: Detector,
+    img: np.ndarray | None = None,
 ) -> tuple[np.ndarray | None, np.ndarray | None, object | None]:
     """Grab one frame and detect the given tag.
+
+    If *img* is supplied (RGB, HxWx3) the pipeline is not polled — used when
+    a recording thread already owns frame capture.
 
     Returns:
          (T_cam_tag, rgb_frame, detection), any element may be None.
     """
-    frames = pipeline.wait_for_frames()
-    color = frames.get_color_frame()
-    if not color:
-        return None, None, None
+    if img is None:
+        frames = pipeline.wait_for_frames()
+        color = frames.get_color_frame()
+        if not color:
+            return None, None, None
+        img = np.asanyarray(color.get_data())
 
-    img = np.asanyarray(color.get_data())
     gray = np.dot(img[..., :3], [0.299, 0.587, 0.114]).astype(np.uint8)
 
     camera_params = (
@@ -148,13 +153,14 @@ def detect_tag_zeroed(
     tag_size_m: float,
     detector: Detector,
     calibration_filepath: str | None,
+    img: np.ndarray | None = None,
 ) -> tuple[np.ndarray | None, np.ndarray | None, object | None]:
     """Detect tag and apply zero calibration.
 
     Returns (T_zeroed, rgb_frame, detection) - any element may be None.
     """
     transform, frame, det = detect_tag(
-        pipeline, intrinsics, tag_id, tag_size_m, detector
+        pipeline, intrinsics, tag_id, tag_size_m, detector, img
     )
 
     if calibration_filepath is not None:

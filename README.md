@@ -14,6 +14,8 @@ Robot arm Mechatronics undergraduate capstone project.
   * [1 Overview](#1-overview)
     * [1.1 Bill of Materials (BOM)](#11-bill-of-materials-bom)
     * [1.2 Block Diagram](#12-block-diagram)
+    * [1.3 Operating System](#13-operating-system)
+    * [1.4 Python Version](#14-python-version)
   * [2 SDK Implementation](#2-sdk-implementation)
   * [3 Setup and Calibration Scripts](#3-setup-and-calibration-scripts)
     * [3.1 General Setup](#31-general-setup)
@@ -44,6 +46,17 @@ Robot arm Mechatronics undergraduate capstone project.
 ![capstone2026.drawio.png](docs/capstone2026.drawio.png)
 
 > Drawio file here: [capstone2026.drawio](docs/capstone2026.drawio).
+
+### 1.3 Operating System
+
+The core code was developed on an x86 Windows machine. Implementations in Linux
+and macOS will require some additional install and setup, especially the
+RealSense SDK.
+
+### 1.4 Python Version
+
+As of time of writing Python `3.12` is used due to conflicting versions of
+python package compatibility.
 
 ---
 
