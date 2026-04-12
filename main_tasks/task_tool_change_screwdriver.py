@@ -6,9 +6,9 @@ from .abstracted import go_to_target_height_offset
 
 """SCREW DRIVER STAND"""
 APRIL_TAG_ID_SCREWDRIVER_STAND = 1
-APRIL_TAG_SIZE_M_SCREWDRIVER_STAND = 0.04
-SCREWDRIVER_STAND_M = 0.075  # Tool stand entry vertical clearance.
-SCREWDRIVER_STAND_AND_TOOL_M = 0.15  # Tool stand exit and raise clearance.
+APRIL_TAG_SIZE_M_SCREWDRIVER_STAND = 0.03
+SCREWDRIVER_STAND_M = 0.07  # Tool stand entry vertical clearance.
+SCREWDRIVER_STAND_AND_TOOL_M = 0.13  # Tool stand exit and raise clearance.
 SCREWDRIVER_STAND_CALIBRATION_FILE_PATH = (
     "computer_vision_cals/april_tag_cal_screwdriver_stand.csv"
 )
@@ -53,7 +53,7 @@ def tool_change_to_screw_driver(
             april_tag_size_m=APRIL_TAG_SIZE_M_SCREWDRIVER_STAND,
             height=height * (steps - (i + 1)) - 0.005,
             # Lock orientation only when close.
-            lock_full_orientation=True if i < 2 else False,
+            lock_full_orientation=True,
             april_tag_calibration_filepath=SCREWDRIVER_STAND_CALIBRATION_FILE_PATH,
             min_segment_time=1.0,  # Smaller segment times.
         )
