@@ -66,26 +66,22 @@ def __go_robot_go():
     # Optimal pose.
     go_to_optimal_pose(min_segment_time=5.0)
 
-    # Tool change to screwdriver tool.
-    tool_change_to_screw_driver(safety_on=False, return_tool=False)
-    go_to_optimal_pose(min_segment_time=5.0)
+    # # Tool change to screwdriver tool.
+    # tool_change_to_screw_driver(safety_on=False, return_tool=False)
+    # go_to_optimal_pose(min_segment_time=5.0)
 
     # # Tighten bolt.
     # bolt_tighten(safety_on=False)
     # go_to_optimal_pose(min_segment_time=5.0)
 
-    # Return screwdriver tool.
-    tool_change_to_screw_driver(safety_on=False, return_tool=True)
-    go_to_optimal_pose(min_segment_time=5.0)
+    # # Return screwdriver tool.
+    # tool_change_to_screw_driver(safety_on=False, return_tool=True)
+    # go_to_optimal_pose(min_segment_time=5.0)
 
-    # # Tool change to claw tool.
-    # tool_change_to_claw(safety_on=False, return_tool=False)
-    # go_to_optimal_pose(min_segment_time=5.0)
-    #
     # # Replug wire.
-    # wire_replug(safety_on=False)
+    # wire_replug(safety_on=True)
     # go_to_optimal_pose(min_segment_time=5.0)
-    #
+
     # # Do inchworm.
     # do_inchworm(safety_on=False)
 
@@ -94,7 +90,7 @@ def main():
     can_bus, rsbl120_comm, st3215_comm = None, None, None
 
     try:
-        if not RUN_VIRTUAL:
+        if not RUN_VIRTUAL and CAMERA_RECORD:
             # Start recording from camera.
             recording_name = (
                 f"ee2_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
@@ -129,7 +125,7 @@ def main():
         # Close comms.
         deinit_comms(can_bus, rsbl120_comm, st3215_comm)
 
-        if not RUN_VIRTUAL:
+        if not RUN_VIRTUAL and CAMERA_RECORD:
             # Stop recording from camera.
             stop_recording()
 
