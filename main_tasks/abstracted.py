@@ -62,6 +62,7 @@ def go_to_target_offset(
     april_tag_calibration_filepath: str,
     offset: np.ndarray,
     min_segment_time: float = 3.0,
+    lock_full_orientation: bool = True,
     save_april_tag_data: bool = False,
 ):
     initial_q = get_active_q()
@@ -80,6 +81,7 @@ def go_to_target_offset(
         min_segment_time=min_segment_time,
         step_m=0.01,
         smooth_alpha=0.3,
+        lock_full_orientation=lock_full_orientation,
         offset=offset,
     )
     update_tracked_q(q_frames[-1])
@@ -129,6 +131,7 @@ def go_to_target_height_offset(
     april_tag_calibration_filepath: str,
     height: float,
     min_segment_time: float = 3.0,
+    lock_full_orientation: bool = True,
     save_april_tag_data: bool = False,
 ):
     offset = np.array(
@@ -145,5 +148,6 @@ def go_to_target_height_offset(
         april_tag_calibration_filepath=april_tag_calibration_filepath,
         offset=offset,
         min_segment_time=min_segment_time,
+        lock_full_orientation=lock_full_orientation,
         save_april_tag_data=save_april_tag_data,
     )

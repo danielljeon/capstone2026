@@ -70,24 +70,24 @@ def __go_robot_go():
     tool_change_to_screw_driver(safety_on=False, return_tool=False)
     go_to_optimal_pose(min_segment_time=5.0)
 
-    # Tighten bolt.
-    bolt_tighten(safety_on=False)
-    go_to_optimal_pose(min_segment_time=5.0)
+    # # Tighten bolt.
+    # bolt_tighten(safety_on=False)
+    # go_to_optimal_pose(min_segment_time=5.0)
 
     # Return screwdriver tool.
     tool_change_to_screw_driver(safety_on=False, return_tool=True)
     go_to_optimal_pose(min_segment_time=5.0)
 
-    # Tool change to claw tool.
-    tool_change_to_claw(safety_on=False, return_tool=False)
-    go_to_optimal_pose(min_segment_time=5.0)
-
-    # Replug wire.
-    wire_replug(safety_on=False)
-    go_to_optimal_pose(min_segment_time=5.0)
-
-    # Do inchworm.
-    do_inchworm(safety_on=False)
+    # # Tool change to claw tool.
+    # tool_change_to_claw(safety_on=False, return_tool=False)
+    # go_to_optimal_pose(min_segment_time=5.0)
+    #
+    # # Replug wire.
+    # wire_replug(safety_on=False)
+    # go_to_optimal_pose(min_segment_time=5.0)
+    #
+    # # Do inchworm.
+    # do_inchworm(safety_on=False)
 
 
 def main():

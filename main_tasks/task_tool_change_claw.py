@@ -41,12 +41,18 @@ def tool_change_to_claw(safety_on: bool = True, return_tool: bool = False):
     else:
         release_tool_changer(EE2_TC)
     steps = 3
-    height = CLAW_STAND_M / steps
+
+    if return_tool:
+        height = CLAW_STAND_AND_TOOL_M / steps
+    else:
+        height = CLAW_STAND_M / steps
     for i in range(steps):
         go_to_target_height_offset(
             april_tag_id=APRIL_TAG_ID_CLAW_STAND,
             april_tag_size_m=APRIL_TAG_SIZE_M_BOLT_TASK,
             height=height * (steps - (i + 1)) - 0.005,
+            # Lock orientation only when close.
+            lock_full_orientation=True if i < 2 else False,
             april_tag_calibration_filepath=CLAW_STAND_CALIBRATION_FILE_PATH,
             min_segment_time=1.0,  # Smaller segment times.
         )
@@ -67,5 +73,8 @@ def tool_change_to_claw(safety_on: bool = True, return_tool: bool = False):
         april_tag_id=APRIL_TAG_ID_CLAW_STAND,
         april_tag_size_m=APRIL_TAG_SIZE_M_BOLT_TASK,
         height=CLAW_STAND_AND_TOOL_M,
+        # Assume orientation holds long enough to clear the initial tool stand
+        # alignment plate.
+        lock_full_orientation=False,
         april_tag_calibration_filepath=CLAW_STAND_CALIBRATION_FILE_PATH,
     )
