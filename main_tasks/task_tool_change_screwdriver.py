@@ -43,7 +43,10 @@ def tool_change_to_screw_driver(
     else:
         release_tool_changer(EE2_TC)
     steps = 3
-    height = SCREWDRIVER_STAND_M / steps
+    if return_tool:
+        height = SCREWDRIVER_STAND_AND_TOOL_M / steps
+    else:
+        height = SCREWDRIVER_STAND_M / steps
     for i in range(steps):
         go_to_target_height_offset(
             april_tag_id=APRIL_TAG_ID_SCREWDRIVER_STAND,
