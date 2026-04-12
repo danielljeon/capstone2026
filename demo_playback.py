@@ -8,7 +8,7 @@
 
 import argparse
 
-from constants import URDF_BASE_LINK, URDF_PATH
+from constants import URDF_BASE_LINK, URDF_PATH, IK_DT_S
 from recorder import playback, playback_viser
 
 
@@ -55,6 +55,7 @@ def main():
             args.q_frames_file,
             xyz_file=args.xyz_file,
             pose_file=args.pose_file,
+            dt=IK_DT_S,
             port=args.port,
         )
     else:
