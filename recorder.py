@@ -91,10 +91,16 @@ def playback_viser(
     q_frames_file: str,
     xyz_file: str | None = None,
     pose_file: str | None = None,
+    dt: float = 0.02,
     port: int = 8080,
 ):
     q_frames = np.loadtxt(q_frames_file, delimiter=",", skiprows=1)
     targets = _load_targets(xyz_file, pose_file)
     viser_animate_q(
-        urdf_base_link, urdf_path, q_frames, targets_xyz=targets, port=port
+        urdf_base_link,
+        urdf_path,
+        q_frames,
+        targets_xyz=targets,
+        dt=dt,
+        port=port,
     )
