@@ -6,6 +6,7 @@ Outputs 4x4 camera-to-tag transform, with optional zeroed relative transform.
 import time
 from pathlib import Path
 
+import cv2
 import numpy as np
 import pyrealsense2 as rs
 from pupil_apriltags import Detector
@@ -15,13 +16,31 @@ def get_realsense_intrinsics(pipeline: rs.pipeline) -> dict:
     profile = pipeline.get_active_profile()
     stream = profile.get_stream(rs.stream.color).as_video_stream_profile()
     i = stream.get_intrinsics()
+
+    camera_matrix = np.array(
+        [
+            [i.fx, 0, i.ppx],
+            [0, i.fy, i.ppy],
+            [0, 0, 1],
+        ]
+    )
+    dist_coeffs = np.array(i.coeffs)
+
+    # Compute once — reuse for every frame
+    new_camera_matrix, roi = cv2.getOptimalNewCameraMatrix(
+        camera_matrix, dist_coeffs, (i.width, i.height), 0
+    )
+
     return {
-        "fx": i.fx,
-        "fy": i.fy,
-        "cx": i.ppx,
-        "cy": i.ppy,
+        "fx": new_camera_matrix[0, 0],
+        "fy": new_camera_matrix[1, 1],
+        "cx": new_camera_matrix[0, 2],
+        "cy": new_camera_matrix[1, 2],
         "width": i.width,
         "height": i.height,
+        "camera_matrix": camera_matrix,
+        "dist_coeffs": dist_coeffs,
+        "new_camera_matrix": new_camera_matrix,
     }
 
 
@@ -55,6 +74,14 @@ def detect_tag(
         if not color:
             return None, None, None
         img = np.asanyarray(color.get_data())
+
+    img = cv2.undistort(
+        img,
+        intrinsics["camera_matrix"],
+        intrinsics["dist_coeffs"],
+        None,
+        intrinsics["new_camera_matrix"],
+    )
 
     gray = np.dot(img[..., :3], [0.299, 0.587, 0.114]).astype(np.uint8)
 
