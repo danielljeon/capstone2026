@@ -116,9 +116,9 @@ def wire_replug(safety_on: bool = True):
         speed=1,
         duration_s=10,
         reverse=True,
-        current_limit=350,
+        current_limit=300,
         ignore_start_current=True,
-        start_current_time_s=0.5,
+        start_current_time_s=1.0,
         plot_playback=TOOL_LOG_PLOT,
         playback_csv_dir=("." if TOOL_LOG else None),
     )
