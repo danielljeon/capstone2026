@@ -90,7 +90,7 @@ def main():
     can_bus, rsbl120_comm, st3215_comm = None, None, None
 
     try:
-        if not RUN_VIRTUAL and CAMERA_RECORD:
+        if CAMERA_RECORD:
             # Start recording from camera.
             recording_name = (
                 f"ee2_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
@@ -125,7 +125,7 @@ def main():
         # Close comms.
         deinit_comms(can_bus, rsbl120_comm, st3215_comm)
 
-        if not RUN_VIRTUAL and CAMERA_RECORD:
+        if CAMERA_RECORD:
             # Stop recording from camera.
             stop_recording()
 
