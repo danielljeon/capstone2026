@@ -1,4 +1,6 @@
-"""
+""" Detects AprilTags via RealSense camera, printing pose transforms to the
+terminal or displaying a live annotated overlay with optional video recording.
+
 >>> python demo_april_tag.py  # headless
 >>> python demo_april_tag.py --gui  # live overlay
 >>> python demo_april_tag.py --gui --tag 3  # target tag 3

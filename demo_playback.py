@@ -1,4 +1,4 @@
-"""Replay a recorder logged q_frames CSV using matplotlib or viser.
+"""Replays a recorded q_frames CSV through matplotlib or a viser 3D viewer.
 
 >>> python demo_playback.py recording.csv
 >>> python demo_playback.py recording.csv --viewer matplotlib
