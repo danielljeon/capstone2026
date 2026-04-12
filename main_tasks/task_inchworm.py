@@ -59,6 +59,14 @@ def __go_to_inchworm_pose():
     update_tracked_q(q_frames[-1])
     record_q_frames(q_frames)
     record_targets(targets)
+    if VISER_ANIMATE_ALL:
+        viser_animate_q(
+            urdf_base_link=URDF_BASE_LINK,
+            urdf_path=URDF_PATH,
+            q_frames=q_frames,
+            targets_xyz=targets,
+            dt=IK_DT_S,
+        )
     if ANIMATE_ALL:
         animate_q(
             urdf_base_link=URDF_BASE_LINK,
