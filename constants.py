@@ -15,10 +15,11 @@ PWM_NODE_SERVO_BITRATE = 500_000
 RSBL120_PORT = "COM6"  # "/dev/cu.usbmodem5ABA0052171"
 ST3215_PORT = "COM5"  # "/dev/cu.usbmodem5ABA0050551"
 
-# System wide operation/joint angle tracking mode.
-RUN_VIRTUAL = False
-VISER_ANIMATE_ALL = False
-ANIMATE_ALL = False
+# Run configurations.
+RECORD_ALL = False  # Record all computed q_active, target_xyz and target_pose.
+RUN_VIRTUAL = False  # System wide operation/joint angle tracking mode.
+VISER_ANIMATE_ALL = False  # Viser animate all moves.
+ANIMATE_ALL = False  # Animate (matplotlib) all moves.
 
 # IK and URDF driven constants.
 

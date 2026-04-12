@@ -25,8 +25,9 @@ def go_to_optimal_pose(min_segment_time: float = 3.0):
         smooth_alpha=0.3,
     )
     update_tracked_q(q_frames[-1])
-    record_q_frames(q_frames)
-    record_targets(targets)
+    if RECORD_ALL:
+        record_q_frames(q_frames)
+        record_targets(targets)
     if VISER_ANIMATE_ALL:
         viser_animate_q(
             urdf_base_link=URDF_BASE_LINK,
@@ -82,15 +83,16 @@ def go_to_target_offset(
         offset=offset,
     )
     update_tracked_q(q_frames[-1])
-    record_q_frames(q_frames)
-    # TODO: Reimplements internal logic of ik_relative_from_q in order to record
-    #  targets.
-    temp_transform = calculate_t_relative_from_q(
-        URDF_BASE_LINK, URDF_PATH, initial_q, t_april_tag, offset
-    )
-    temp_target_pos = temp_transform[:3, 3]
-    temp_targets = [temp_target_pos.tolist()]
-    record_targets(temp_targets)
+    if RECORD_ALL:
+        record_q_frames(q_frames)
+        # TODO: Reimplements internal logic of ik_relative_from_q in order to
+        #  record targets.
+        temp_transform = calculate_t_relative_from_q(
+            URDF_BASE_LINK, URDF_PATH, initial_q, t_april_tag, offset
+        )
+        temp_target_pos = temp_transform[:3, 3]
+        temp_targets = [temp_target_pos.tolist()]
+        record_targets(temp_targets)
     if VISER_ANIMATE_ALL:
         viser_animate_q(
             urdf_base_link=URDF_BASE_LINK,

@@ -57,8 +57,9 @@ def __go_to_inchworm_pose():
         smooth_alpha=0.3,
     )
     update_tracked_q(q_frames[-1])
-    record_q_frames(q_frames)
-    record_targets(targets)
+    if RECORD_ALL:
+        record_q_frames(q_frames)
+        record_targets(targets)
     if VISER_ANIMATE_ALL:
         viser_animate_q(
             urdf_base_link=URDF_BASE_LINK,
