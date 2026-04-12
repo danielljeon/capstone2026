@@ -52,6 +52,8 @@ def tool_change_to_screw_driver(
             april_tag_id=APRIL_TAG_ID_SCREWDRIVER_STAND,
             april_tag_size_m=APRIL_TAG_SIZE_M_SCREWDRIVER_STAND,
             height=height * (steps - (i + 1)) - 0.005,
+            # Lock orientation only when close.
+            lock_full_orientation=True if i < 2 else False,
             april_tag_calibration_filepath=SCREWDRIVER_STAND_CALIBRATION_FILE_PATH,
             min_segment_time=1.0,  # Smaller segment times.
         )
@@ -72,5 +74,8 @@ def tool_change_to_screw_driver(
         april_tag_id=APRIL_TAG_ID_SCREWDRIVER_STAND,
         april_tag_size_m=APRIL_TAG_SIZE_M_SCREWDRIVER_STAND,
         height=SCREWDRIVER_STAND_AND_TOOL_M,
+        # Assume orientation holds long enough to clear the initial tool stand
+        # alignment plate.
+        lock_full_orientation=False,
         april_tag_calibration_filepath=SCREWDRIVER_STAND_CALIBRATION_FILE_PATH,
     )
