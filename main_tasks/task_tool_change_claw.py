@@ -73,8 +73,5 @@ def tool_change_to_claw(safety_on: bool = True, return_tool: bool = False):
         april_tag_id=APRIL_TAG_ID_CLAW_STAND,
         april_tag_size_m=APRIL_TAG_SIZE_M_BOLT_TASK,
         height=CLAW_STAND_AND_TOOL_M,
-        # Assume orientation holds long enough to clear the initial tool stand
-        # alignment plate.
-        lock_full_orientation=False,
         april_tag_calibration_filepath=CLAW_STAND_CALIBRATION_FILE_PATH,
     )
