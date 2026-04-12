@@ -10,9 +10,9 @@ from virtualizer import get_active_q, update_tracked_q
 from vision import tag_to_robot_tag_detect
 
 
-def go_to_optimal_pose(min_segment_time: float = 3.0):
+def go_to_pose(pose: JointPose, min_segment_time: float = 3.0):
     initial_q = get_active_q()
-    targets = [OPTIMAL_POSE]
+    targets = [pose]
     q_frames = ik_path(
         urdf_base_link=URDF_BASE_LINK,
         urdf_path=URDF_PATH,
@@ -54,6 +54,10 @@ def go_to_optimal_pose(min_segment_time: float = 3.0):
             move_time_ms=int(IK_DT_S * 1000),
             settle_ms=50,
         )
+
+
+def go_to_optimal_pose(min_segment_time: float = 3.0):
+    go_to_pose(OPTIMAL_POSE, min_segment_time)
 
 
 def go_to_target_offset(
