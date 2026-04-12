@@ -123,9 +123,10 @@ Planned tasks (located in [main_tasks](main_tasks)):
 Quick demo and test scripts:
 
 1. [`demo_april_tag.py`](demo_april_tag.py).
-2. [`demo_read_q.py`](demo_read_q.py).
-3. [`demo_run_tool.py`](demo_run_tool.py).
-4. [`demo_tool_changer.py`](demo_tool_changer.py).
+2. [demo_playback.py](demo_playback.py).
+3. [`demo_read_q.py`](demo_read_q.py).
+4. [`demo_run_tool.py`](demo_run_tool.py).
+5. [`demo_tool_changer.py`](demo_tool_changer.py).
 
 ---
 
