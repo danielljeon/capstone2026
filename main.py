@@ -96,7 +96,9 @@ def main():
     try:
         if not RUN_VIRTUAL:
             # Start recording from camera.
-            recording_name = f"ee2_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
+            recording_name = (
+                f"ee2_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
+            )
             start_recording(recording_name)
 
         # Init and assign comms.
