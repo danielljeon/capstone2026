@@ -83,22 +83,24 @@ def go_to_target_offset(
         offset=offset,
     )
     update_tracked_q(q_frames[-1])
-    if RECORD_ALL:
-        record_q_frames(q_frames)
+    targets = None
+    if RECORD_ALL or VISER_ANIMATE_ALL or ANIMATE_ALL:
         # TODO: Reimplements internal logic of ik_relative_from_q in order to
         #  record targets.
         temp_transform = calculate_t_relative_from_q(
             URDF_BASE_LINK, URDF_PATH, initial_q, t_april_tag, offset
         )
         temp_target_pos = temp_transform[:3, 3]
-        temp_targets = [temp_target_pos.tolist()]
-        record_targets(temp_targets)
+        targets = [temp_target_pos.tolist()]
+    if RECORD_ALL:
+        record_q_frames(q_frames)
+        record_targets(targets)
     if VISER_ANIMATE_ALL:
         viser_animate_q(
             urdf_base_link=URDF_BASE_LINK,
             urdf_path=URDF_PATH,
             q_frames=q_frames,
-            targets_xyz=temp_targets,
+            targets_xyz=targets,
             dt=IK_DT_S,
         )
     if ANIMATE_ALL:
@@ -106,7 +108,7 @@ def go_to_target_offset(
             urdf_base_link=URDF_BASE_LINK,
             urdf_path=URDF_PATH,
             q_frames=q_frames,
-            targets_xyz=temp_targets,
+            targets_xyz=targets,
             show_frames=True,
             frame_scale=0.05,
             frame_stride=1,
