@@ -109,6 +109,8 @@ def do_inchworm(safety_on: bool = True):
         current_limit=450,
         ignore_start_current=True,
         start_current_time_s=0.5,
+        plot_playback=TOOL_LOG_PLOT,
+        playback_csv_dir=("." if TOOL_LOG else None),
     )
 
     if safety_on:
@@ -124,6 +126,8 @@ def do_inchworm(safety_on: bool = True):
         current_limit=450,
         ignore_start_current=True,
         start_current_time_s=0.5,
+        plot_playback=TOOL_LOG_PLOT,
+        playback_csv_dir=("." if TOOL_LOG else None),
     )
 
     # if safety_on:

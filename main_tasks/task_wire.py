@@ -2,6 +2,7 @@ import time
 
 import numpy as np
 
+from constants import TOOL_LOG, TOOL_LOG_PLOT
 from robot.end_effectors import (
     EE2_TOOL,
     run_tool_end,
@@ -61,8 +62,8 @@ def wire_replug(safety_on: bool = True):
         current_limit=350,
         ignore_start_current=True,
         start_current_time_s=0.5,
-        plot_playback=True,
-        playback_csv_dir=".",
+        plot_playback=TOOL_LOG_PLOT,
+        playback_csv_dir=("." if TOOL_LOG else None),
     )
 
     if safety_on:
@@ -118,8 +119,8 @@ def wire_replug(safety_on: bool = True):
         current_limit=350,
         ignore_start_current=True,
         start_current_time_s=0.5,
-        plot_playback=True,
-        playback_csv_dir=".",
+        plot_playback=TOOL_LOG_PLOT,
+        playback_csv_dir=("." if TOOL_LOG else None),
     )
 
     if safety_on:

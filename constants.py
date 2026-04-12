@@ -20,6 +20,8 @@ RECORD_ALL = False  # Record all computed q_active, target_xyz and target_pose.
 RUN_VIRTUAL = False  # System wide operation/joint angle tracking mode.
 VISER_ANIMATE_ALL = False  # Viser animate all moves.
 ANIMATE_ALL = False  # Animate (matplotlib) all moves.
+TOOL_LOG = False  # Record all current data for tool movement.
+TOOL_LOG_PLOT = False  # Plot each recorded current data for tool movement.
 
 # IK and URDF driven constants.
 
