@@ -84,6 +84,7 @@ The following configuration constants are defined:
 
 | Constant            | Default | Description                                               |
 |---------------------|:-------:|-----------------------------------------------------------|
+| `ALL_SAFETY_ON`     | `True`  | Require manual developer confirm "yes" in terminal.       |
 | `RECORD_ALL`        | `False` | Record all computed q_active, target_xyz and target_pose. |
 | `CAMERA_RECORD`     | `False` | Record view from the RealSense camera.                    |
 | `RUN_VIRTUAL`       | `False` | System wide operation/joint angle tracking mode.          |
