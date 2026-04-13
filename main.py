@@ -66,6 +66,7 @@ def __go_robot_go():
     # Optimal pose.
     go_to_optimal_pose(min_segment_time=5.0)
 
+    """TASK GROUP 1"""
     # # Tool change to screwdriver tool.
     # tool_change_to_screw_driver(safety_on=ALL_SAFETY_ON, return_tool=False)
     # go_to_optimal_pose(min_segment_time=5.0)
@@ -73,19 +74,25 @@ def __go_robot_go():
     # # Tighten bolt.
     # bolt_tighten(safety_on=ALL_SAFETY_ON)
     # go_to_optimal_pose(min_segment_time=5.0)
-
+    #
     # # Return screwdriver tool.
     # tool_change_to_screw_driver(safety_on=ALL_SAFETY_ON, return_tool=True)
     # go_to_optimal_pose(min_segment_time=5.0)
 
+    """TASK GROUP 2"""
     # # Swap to claw.
     # tool_change_to_claw(safety_on=ALL_SAFETY_ON, return_tool=False)
     # go_to_optimal_pose(min_segment_time=5.0)
-
+    #
     # # Replug wire.
     # wire_replug(safety_on=ALL_SAFETY_ON)
     # go_to_optimal_pose(min_segment_time=5.0)
 
+    # # Return claw.
+    # tool_change_to_claw(safety_on=ALL_SAFETY_ON, return_tool=True)
+    # go_to_optimal_pose(min_segment_time=5.0)
+
+    """TASK GROUP 3"""
     # # Do inchworm.
     # do_inchworm(safety_on=ALL_SAFETY_ON)
 
