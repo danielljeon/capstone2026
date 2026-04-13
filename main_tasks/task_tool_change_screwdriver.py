@@ -6,7 +6,7 @@ from .abstracted import go_to_target_height_offset
 
 """SCREW DRIVER STAND"""
 APRIL_TAG_ID_SCREWDRIVER_STAND = 1
-APRIL_TAG_SIZE_M_SCREWDRIVER_STAND = 0.03
+APRIL_TAG_SIZE_M_SCREWDRIVER_STAND = 0.02
 SCREWDRIVER_STAND_M = 0.07  # Tool stand entry vertical clearance.
 SCREWDRIVER_STAND_AND_TOOL_M = 0.13  # Tool stand exit and raise clearance.
 SCREWDRIVER_STAND_CALIBRATION_FILE_PATH = (
