@@ -52,7 +52,7 @@ def tool_change_to_claw(safety_on: bool = True, return_tool: bool = False):
             april_tag_size_m=APRIL_TAG_SIZE_M_BOLT_TASK,
             height=height * (steps - (i + 1)) - 0.005,
             # Lock orientation only when close.
-            lock_full_orientation=True if i < 2 else False,
+            lock_full_orientation=True if i > 0 else False,
             april_tag_calibration_filepath=CLAW_STAND_CALIBRATION_FILE_PATH,
             min_segment_time=1.0,  # Smaller segment times.
         )
